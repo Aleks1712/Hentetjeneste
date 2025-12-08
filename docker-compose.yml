@@ -1,0 +1,58 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    container_name: hentetjeneste_db
+    environment:
+      POSTGRES_DB: hentetjeneste
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hentetjeneste_api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Use production profile which is already configured for PostgreSQL
+      SPRING_PROFILES_ACTIVE: prod
+      # Inject DB connection details used by application-prod.yml
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: hentetjeneste
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      # For local dev convenience, let Hibernate manage schema updates automatically
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    ports:
+      - "8080:8080"
+    # Uncomment if you want to see logs in color and forward Ctrl+C properly
+    # tty: true
+
+  # Optional DB UI
+  # pgadmin:
+  #   image: dpage/pgadmin4:8
+  #   container_name: hentetjeneste_pgadmin
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: admin@local
+  #     PGADMIN_DEFAULT_PASSWORD: admin
+  #   depends_on:
+  #     - db
+  #   ports:
+  #     - "5050:80"
+
+volumes:
+  pgdata:
