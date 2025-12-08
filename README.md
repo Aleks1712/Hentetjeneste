@@ -17,21 +17,11 @@ npm run dev
 npm run build
 ```
 
-Frontend runs on `http://localhost:3000` (or port shown in terminal)
+Frontend runs on `http://localhost:5173` (or port shown in terminal)
 
-### Backend (Spring Boot)
+### Backend (Supabase)
 
-```bash
-cd backend
-
-# Install dependencies (requires Java 17+ and Maven)
-mvn clean install
-
-# Run the application
-mvn spring-boot:run
-```
-
-Backend runs on `http://localhost:8080`
+Backend er serverless og bruker Supabase. Se `docs/SUPABASE_SETUP.md` for oppsett.
 
 ## 📁 Project Structure
 
@@ -43,9 +33,8 @@ Hentetjeneste/
 │   ├── data/              # Mock data
 │   ├── public/            # Static assets & PWA files
 │   └── styles/            # Global styles
-├── backend/                # Backend (Spring Boot)
-│   ├── src/main/java/     # Java source code
-│   └── src/main/resources/ # Configuration
+├── supabase/              # Database migrations
+│   └── migrations/        # SQL migration scripts
 ├── docs/                  # Documentation
 └── tools/                 # Development tools
 ```
@@ -60,12 +49,10 @@ Hentetjeneste/
 - **PWA** - Progressive Web App support
 
 ### Backend
-- **Java 17**
-- **Spring Boot 3.2**
-- **Spring Data JPA** - Database access
-- **Spring Security** - Authentication
-- **H2 Database** (dev) / **PostgreSQL** (prod)
-- **JWT** - Token-based auth
+- **Supabase** - Serverless backend (PostgreSQL + Auth + Storage)
+- **PostgreSQL** - Database
+- **Row Level Security (RLS)** - Data security
+- **Supabase Auth** - Authentication & authorization
 
 ## 📱 Features
 
@@ -83,38 +70,23 @@ Hentetjeneste/
 - Chat med ansatte
 - Full kontroll over barnets data
 
-## 🔌 API Endpoints
+## 🔌 API & Database
 
-### Authentication
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login user
+Applikasjonen bruker **Supabase** som backend:
+- **PostgreSQL database** - Se `supabase/migrations/` for schema
+- **Supabase Auth** - Autentisering og autorisering
+- **Row Level Security** - GDPR-sikker dataadgang
+- **Real-time subscriptions** - Live oppdateringer
 
-### Children
-- `GET /api/children` - Get all children
-- `GET /api/children/{id}` - Get child by ID
-- `POST /api/children` - Create new child
-- `PUT /api/children/{id}` - Update child
-- `PATCH /api/children/{id}/check-in` - Check in child
-- `PATCH /api/children/{id}/check-out` - Check out child
-
-## 🗄️ Database
-
-Development uses H2 database (stored in `backend/data/`).
-
-Access H2 Console at: `http://localhost:8080/h2-console`
-- JDBC URL: `jdbc:h2:file:./data/hentetjeneste`
-- Username: `sa`
-- Password: (empty)
-
-For production, use PostgreSQL (see `backend/src/main/resources/application-prod.yml`)
+Se `docs/SUPABASE_SETUP.md` for oppsett og `src/services/supabase.ts` for API-klient.
 
 ## 🔐 Security
 
-- JWT-based authentication
-- Password encryption (BCrypt)
-- CORS configured for frontend
-- Role-based access control (PARENT, STAFF, ADMIN)
-- GDPR-compliant data handling
+- **Supabase Auth** - Secure authentication
+- **Row Level Security (RLS)** - Database-level security
+- **GDPR-compliant** - Se `docs/GDPR_COMPLIANCE.md`
+- **Role-based access control** - PARENT, STAFF, ADMIN
+- **Data encryption** - In transit and at rest (Supabase)
 
 ## 📚 Documentation
 
@@ -131,24 +103,19 @@ npm run build
 # Deploy dist/ folder
 ```
 
-### Backend (Heroku/Railway/Render)
-```bash
-cd backend
-mvn clean package
-# Deploy target/hentetjeneste-backend-1.0.0.jar
-```
+### Backend (Supabase)
+Backend er serverless via Supabase. Se `docs/SUPABASE_SETUP.md` for oppsett.
 
-Set environment variables:
-- `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`
-- `JWT_SECRET`
-- `PORT`
+Set environment variables for frontend:
+- `VITE_SUPABASE_URL` - Supabase project URL
+- `VITE_SUPABASE_ANON_KEY` - Supabase anonymous key
 
 ## 📝 Development Notes
 
-- Backend uses H2 database in development
-- Frontend uses mock data when backend is not available
-- API client automatically handles authentication tokens
-- Set `VITE_API_URL=http://localhost:8080/api` in `.env` if needed
+- Frontend bruker Supabase direkte (ingen egen backend-server)
+- Mock data finnes i `src/data/mockData.ts` for testing
+- Supabase migrations i `supabase/migrations/`
+- Set `VITE_SUPABASE_URL` og `VITE_SUPABASE_ANON_KEY` i `.env`
 
 ## 👨‍💻 Developer
 

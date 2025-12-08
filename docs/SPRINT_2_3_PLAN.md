@@ -52,6 +52,8 @@
 - **Database**: Supabase (PostgreSQL) ✅
 - **Mobile**: PWA (ikke native Swift/Kotlin apps)
 
+**VIKTIG:** Planleggingssjekklisten nevner Kotlin/Swift, men dette prosjektet bruker React/Java. Se `SPRINT_2_3_SJEKLISTE.md` for oppdatert sjekkliste som matcher faktisk tech stack.
+
 ### Supabase Setup
 1. Opprett prosjekt på supabase.com
 2. Velg EU-region (Frankfurt)
