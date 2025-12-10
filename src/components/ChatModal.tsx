@@ -8,7 +8,14 @@ interface ChatModalProps {
 
 export function ChatModal({ childName, onClose }: ChatModalProps) {
   const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState<Array<{ text: string; sender: 'parent' | 'staff'; time: string }>>([]);
+  const [messages, setMessages] = useState<Array<{ text: string; sender: 'parent' | 'staff'; time: string }>>([
+    { text: 'Hei! Emma hadde en flott dag i dag. Hun var veldig aktiv ute!', sender: 'staff', time: '14:22' },
+    { text: 'Takk for meldingen! Hvor lenge var dere ute?', sender: 'parent', time: '14:35' },
+    { text: 'Vi var ute fra 10:00 til 11:30. Emma lekte med Lucas og Sofia på klatrestativet.', sender: 'staff', time: '14:37' },
+    { text: 'Fint! Hun er så glad i å klatre. Spiste hun godt til lunsj?', sender: 'parent', time: '14:40' },
+    { text: 'Ja, hun spiste opp alt og tok til og med påfyll av suppe!', sender: 'staff', time: '14:42' },
+    { text: 'Supert! Takk for at dere tar så godt vare på henne.', sender: 'parent', time: '14:45' },
+  ]);
 
   const handleSend = () => {
     if (message.trim()) {
@@ -76,14 +83,6 @@ export function ChatModal({ childName, onClose }: ChatModalProps) {
               ))}
             </div>
           )}
-        </div>
-
-        {/* GDPR Notice */}
-        <div className="px-6 py-3 bg-yellow-50 border-t border-yellow-200">
-          <div className="flex items-center gap-2 text-xs text-yellow-800">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            <span>Meldinger slettes automatisk etter 24 timer (GDPR)</span>
-          </div>
         </div>
 
         {/* Input */}

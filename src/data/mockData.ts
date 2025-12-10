@@ -243,7 +243,7 @@ export const mockIncidents: Incident[] = [
     title: 'Mindre fall på lekeplassen',
     description: 'Emma falt og skrapte kneet sitt mens hun lekte på klatreutstyret. Såret ble rengjort og plaster ble påført.',
     reportedBy: 'Pedagog Anna Berg',
-    reportedAt: '2025-11-29T10:15:00',
+    reportedAt: '2025-12-09T10:15:00',
     severity: 'low',
     actionTaken: 'Rengjort sår, påført plaster, observert i 30 min',
     notifiedParents: true,
@@ -255,7 +255,7 @@ export const mockIncidents: Incident[] = [
     title: 'Glemt matboks',
     description: 'Emma hadde glemt matboksen sin hjemme. Hun fikk mat fra barnehagen.',
     reportedBy: 'Pedagog Maria Lund',
-    reportedAt: '2025-11-28T11:30:00',
+    reportedAt: '2025-12-08T11:30:00',
     severity: 'low',
     notifiedParents: true,
   },
@@ -266,9 +266,32 @@ export const mockIncidents: Incident[] = [
     title: 'Kvalm etter lunsj',
     description: 'Lucas følte seg kvalm etter lunsj og la seg ned. Temperatur: 37.2°C. Foreldre varslet.',
     reportedBy: 'Pedagog Anna Berg',
-    reportedAt: '2025-11-27T13:00:00',
+    reportedAt: '2025-12-08T13:00:00',
     severity: 'medium',
     actionTaken: 'Hvile i grupperom, temperatur målt, foreldre kontaktet',
+    notifiedParents: true,
+  },
+  {
+    id: 'incident-4',
+    childId: 'child-5',
+    type: 'injury',
+    title: 'Skrubbsår på albuen',
+    description: 'Sofia falt mens hun løp i barnehagen og fikk et skrubbsår på albuen.',
+    reportedBy: 'Pedagog Lisa Hansen',
+    reportedAt: '2025-12-09T14:20:00',
+    severity: 'low',
+    actionTaken: 'Rengjort med vann, påført plaster',
+    notifiedParents: true,
+  },
+  {
+    id: 'incident-5',
+    childId: 'child-7',
+    type: 'info',
+    title: 'Veldig sliten i dag',
+    description: 'Maja virket sliten og sovnet under hvilen. Mamma sa hun sov dårlig i natt.',
+    reportedBy: 'Pedagog Anna Berg',
+    reportedAt: '2025-12-09T13:45:00',
+    severity: 'low',
     notifiedParents: true,
   },
 ];
@@ -305,14 +328,14 @@ export const mockPickupLogs: PickupLog[] = [
 export const mockDailyInfo: DailyInfo[] = [
   {
     id: 'info-1',
-    date: '2025-12-01',
+    date: '2025-12-09',
     type: 'menu',
     title: 'Lunsj i dag',
     description: 'Fiskesuppe med grovbrød og smør. Dessert: Frukt og yoghurt.',
   },
   {
     id: 'info-2',
-    date: '2025-12-01',
+    date: '2025-12-09',
     type: 'activity',
     title: 'Utetur til skogen',
     description: 'I dag skal vi på tur til skogen klokken 10:00. Husk ekstra klær og godt fottøy!',
@@ -320,16 +343,78 @@ export const mockDailyInfo: DailyInfo[] = [
   },
   {
     id: 'info-3',
-    date: '2025-12-01',
+    date: '2025-12-09',
     type: 'announcement',
-    title: 'Adventsstund',
-    description: 'På fredag skal vi ha adventsstund med kakao og pepperkaker. Velkommen!',
+    title: 'Julegranpynt neste uke',
+    description: 'Neste uke skal vi pynte juletreet sammen. Alle er velkomne!',
   },
   {
     id: 'info-4',
-    date: '2025-12-02',
+    date: '2025-12-09',
+    type: 'activity',
+    title: 'Forming i ettermiddag',
+    description: 'Etter lunsj skal vi ha forming med leire. Barna får lage egne julefigurer!',
+    targetGroup: 'Solstråla',
+  },
+  {
+    id: 'info-5',
+    date: '2025-12-10',
     type: 'menu',
     title: 'Lunsj i morgen',
     description: 'Pasta Bolognese med salat. Dessert: Eplekake.',
+  },
+  {
+    id: 'info-6',
+    date: '2025-12-12',
+    type: 'announcement',
+    title: 'Lucia-feiring',
+    description: 'Torsdag 12. desember feirer vi Lucia med sang og lussekatter kl. 11:00. Foreldre er velkomne!',
+  },
+];
+
+// NEW: Chat messages
+export interface ChatMessage {
+  id: string;
+  sender: 'parent' | 'staff';
+  message: string;
+  timestamp: string;
+}
+
+export const mockChatMessages: ChatMessage[] = [
+  {
+    id: 'msg-1',
+    sender: 'staff',
+    message: 'Hei! Emma har hatt en fin dag i dag 😊',
+    timestamp: '14:20',
+  },
+  {
+    id: 'msg-2',
+    sender: 'parent',
+    message: 'Så fint å høre! Har hun spist godt?',
+    timestamp: '14:22',
+  },
+  {
+    id: 'msg-3',
+    sender: 'staff',
+    message: 'Ja, hun spiste nesten hele fiskesuppen og fikk dessert også!',
+    timestamp: '14:23',
+  },
+  {
+    id: 'msg-4',
+    sender: 'parent',
+    message: 'Kjempebra! 👍',
+    timestamp: '14:25',
+  },
+  {
+    id: 'msg-5',
+    sender: 'staff',
+    message: 'Hun har også vært på tur i skogen med oss. Var veldig aktiv!',
+    timestamp: '14:30',
+  },
+  {
+    id: 'msg-6',
+    sender: 'parent',
+    message: 'Takk for oppdateringen! Henter henne om ca 30 min.',
+    timestamp: '14:35',
   },
 ];

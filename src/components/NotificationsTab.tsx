@@ -1,11 +1,17 @@
-import { Bell, CheckCircle, Clock, AlertCircle, MessageCircle, HeartPulse } from 'lucide-react';
+import { useState } from 'react';
+import { HeartPulse, UserCheck, CalendarCheck, Clock, Bell } from 'lucide-react';
+import { Language, useTranslation } from '../translations/translations';
 
 interface NotificationsTabProps {
   role: 'parent' | 'staff';
+  darkMode?: boolean;
+  language?: Language;
 }
 
-export function NotificationsTab({ role }: NotificationsTabProps) {
-  const parentNotifications = [
+export function NotificationsTab({ role, darkMode = false, language = 'no' }: NotificationsTabProps) {
+  const t = useTranslation(language);
+
+  const [parentNotifications, setParentNotifications] = useState([
     {
       id: '1',
       type: 'incident',
@@ -18,7 +24,7 @@ export function NotificationsTab({ role }: NotificationsTabProps) {
     {
       id: '2',
       type: 'success',
-      icon: CheckCircle,
+      icon: UserCheck,
       title: 'Henting godkjent',
       message: 'Din hentemelding for Emma kl. 15:30 er godkjent',
       time: '1 time siden',
@@ -27,7 +33,7 @@ export function NotificationsTab({ role }: NotificationsTabProps) {
     {
       id: '3',
       type: 'info',
-      icon: MessageCircle,
+      icon: Bell,
       title: 'Ny melding fra barnehagen',
       message: 'Besked om ekstra klesbytte til i morgen',
       time: '2 timer siden',
@@ -42,13 +48,13 @@ export function NotificationsTab({ role }: NotificationsTabProps) {
       time: 'I går',
       read: true,
     },
-  ];
+  ]);
 
-  const staffNotifications = [
+  const [staffNotifications, setStaffNotifications] = useState([
     {
       id: '1',
       type: 'warning',
-      icon: AlertCircle,
+      icon: Bell,
       title: 'Hentemelding venter',
       message: '3 nye hentemeldinger krever godkjenning',
       time: '5 min siden',
@@ -66,7 +72,7 @@ export function NotificationsTab({ role }: NotificationsTabProps) {
     {
       id: '3',
       type: 'success',
-      icon: CheckCircle,
+      icon: UserCheck,
       title: 'Emma ble krysset inn',
       message: 'Krysset inn av Kari Nordmann kl. 08:24',
       time: '1 time siden',
@@ -75,15 +81,20 @@ export function NotificationsTab({ role }: NotificationsTabProps) {
     {
       id: '4',
       type: 'info',
-      icon: MessageCircle,
+      icon: Bell,
       title: 'Ny melding fra forelder',
       message: 'Kari Nordmann: "Emma trenger ekstra votter i dag"',
       time: '2 timer siden',
       read: true,
     },
-  ];
+  ]);
 
   const notifications = role === 'parent' ? parentNotifications : staffNotifications;
+  const setNotifications = role === 'parent' ? setParentNotifications : setStaffNotifications;
+
+  const markAllAsRead = () => {
+    setNotifications(notifications.map(n => ({ ...n, read: true })));
+  };
 
   const getTypeStyles = (type: string) => {
     switch (type) {
@@ -112,7 +123,7 @@ export function NotificationsTab({ role }: NotificationsTabProps) {
             <p className="text-gray-600">
               {notifications.filter(n => !n.read).length} uleste varsler
             </p>
-            <button className="text-sm text-blue-600 hover:text-blue-700">
+            <button className="text-sm text-blue-600 hover:text-blue-700" onClick={markAllAsRead}>
               Merk alle som lest
             </button>
           </div>

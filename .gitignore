@@ -1,8 +1,0 @@
-node_modules
-.vscode/
-.qodo/
-
-# Build outputs
-backend/target/
-dist/
-build/

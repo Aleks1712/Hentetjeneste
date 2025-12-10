@@ -1,12 +1,14 @@
-import { Calendar, UtensilsCrossed, Sparkles, Megaphone } from 'lucide-react';
+import { Calendar, UtensilsCrossed, Sparkles, Megaphone, Edit2, Plus, Trash2, Save, X } from 'lucide-react';
 import { DailyInfo } from '../data/mockData';
+import { useState } from 'react';
 
 interface DailyInfoViewProps {
   info: DailyInfo[];
   targetGroup?: string;
+  editable?: boolean;
 }
 
-export function DailyInfoView({ info, targetGroup }: DailyInfoViewProps) {
+export function DailyInfoView({ info, targetGroup, editable }: DailyInfoViewProps) {
   const getInfoIcon = (type: string) => {
     switch (type) {
       case 'menu':

@@ -2,8 +2,9 @@
 const CACHE_NAME = 'hentetjeneste-v1';
 const urlsToCache = [
   '/',
-  '/App.tsx',
-  '/styles/globals.css',
+  '/index.html',
+  '/manifest.json',
+  '/icon.svg',
 ];
 
 // Install event - cache essential resources

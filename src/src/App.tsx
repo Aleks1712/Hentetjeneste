@@ -1,13 +1,13 @@
 import { useState } from 'react';
-import { LoginScreen } from './components/LoginScreen';
-import { OnboardingScreen } from './components/OnboardingScreen';
-import { ParentView } from './components/ParentView';
-import { StaffView } from './components/StaffView';
-import { BottomNavigation } from './components/BottomNavigation';
-import { NotificationsTab } from './components/NotificationsTab';
-import { ProfileTab } from './components/ProfileTab';
-import { ChatModal } from './components/ChatModal';
-import { InstallPWA } from './components/InstallPWA';
+import { LoginScreen } from './pages/LoginScreen';
+import { OnboardingScreen } from './pages/OnboardingScreen';
+import { ParentView } from './pages/ParentView';
+import { StaffView } from './pages/StaffView';
+import { BottomNavigation } from './components/layout/BottomNavigation';
+import { NotificationsTab } from './components/features/profile/NotificationsTab';
+import { ProfileTab } from './components/features/profile/ProfileTab';
+import { ChatModal } from './components/features/chat/ChatModal';
+import { InstallPWA } from './components/ui/InstallPWA';
 import { Language } from './translations/translations';
 
 type UserRole = 'parent' | 'staff';

@@ -1,4 +1,4 @@
-import { Shield, Users, Smartphone, Lock, TrendingUp, Heart } from 'lucide-react';
+import { Shield, Users, Smartphone, Lock, TrendingUp, Heart, Zap, CheckCircle, Star } from 'lucide-react';
 
 interface ValuePropositionProps {
   onClose?: () => void;
@@ -11,11 +11,12 @@ export function ValueProposition({ onClose }: ValuePropositionProps) {
       title: 'For foreldre',
       color: 'purple',
       items: [
-        'Slutt på usikkerhet om hvem som kan hente',
-        'Enkel godkjenning av besteforeldre/venner',
+        'Full kontroll over hvem som kan hente',
+        'Blokker personer midlertidig (ferie, konflikt)',
+        'Øyeblikkelig varsel ved ulykker/hendelser',
         'Chat direkte med barnehagen',
-        'Full oversikt over barnet ditt',
-        'Logg over alle hentinger',
+        'Komplett historikk over alle hentinger',
+        'Alt på én plass - ikke 5 forskjellige systemer',
       ],
     },
     {
@@ -23,11 +24,12 @@ export function ValueProposition({ onClose }: ValuePropositionProps) {
       title: 'For barnehagen',
       color: 'blue',
       items: [
-        'Erstatter usikre Excel-ark',
-        'GDPR-sikker håndtering av sensitiv data',
-        'Ingen telefonkø for å godkjenne henting',
-        'Digital krysselista (inn/ut)',
-        'Oversikt over alle barn',
+        'Slutt på Excel-kaos med personopplysninger',
+        'GDPR-sikker håndtering automatisk',
+        'Spar tid: Ikke ring foreldre for godkjenning',
+        'Digital krysselista erstatter papir',
+        'Send daglig info til alle samtidig',
+        'Alt personalet trenger i én app',
       ],
     },
     {
@@ -35,12 +37,20 @@ export function ValueProposition({ onClose }: ValuePropositionProps) {
       title: 'For barn',
       color: 'pink',
       items: [
-        'Tryggere henting',
-        'Bare godkjente personer',
-        'Raskere kommunikasjon ved hendelser',
-        'Foreldre og barnehage samarbeider bedre',
+        'Tryggere: Bare godkjente personer kan hente',
+        'Raskere respons ved skader/sykdom',
+        'Foreldre får daglig info (mat, søvn, lek)',
+        'Bedre kommunikasjon = tryggere barn',
+        'Ingen misforståelser om hvem som henter',
       ],
     },
+  ];
+
+  const keyFeatures = [
+    { icon: Zap, title: 'Spond-enkel UX', desc: 'Ingen læringskurve - kjent design' },
+    { icon: Shield, title: 'GDPR-first', desc: 'Bygget med personvern fra dag 1' },
+    { icon: Smartphone, title: 'Mobilvennlig', desc: 'Perfekt på telefon, fungerer overalt' },
+    { icon: CheckCircle, title: 'Alt-i-ett', desc: 'Krysseliste + henting + varsler + chat' },
   ];
 
   const getColorClasses = (color: string) => {
@@ -79,15 +89,72 @@ export function ValueProposition({ onClose }: ValuePropositionProps) {
   return (
     <div className="space-y-8">
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl border border-gray-200 p-8 text-center">
-        <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-          <Shield className="w-10 h-10 text-white" />
+      <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-10 text-center text-white shadow-xl">
+        <div className="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+          <Shield className="w-12 h-12 text-white" />
         </div>
-        <h2 className="text-2xl text-gray-900 mb-3">Hvorfor Hentetjeneste?</h2>
-        <p className="text-gray-700 leading-relaxed max-w-2xl mx-auto">
+        <h2 className="text-3xl mb-4">Hentetjeneste</h2>
+        <p className="text-xl text-blue-50 leading-relaxed max-w-3xl mx-auto mb-6">
           Vi erstatter usikre Excel-løsninger med en moderne, GDPR-sikker app som gir trygghet til foreldre, 
-          pedagoger og barn. Enkel å bruke, trygg å stole på.
+          pedagoger og barn.
         </p>
+        <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-6 py-3 rounded-full">
+          <Star className="w-5 h-5 text-yellow-300" />
+          <span className="text-sm">Enkel å bruke, trygg å stole på</span>
+        </div>
+      </div>
+
+      {/* Key Features */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {keyFeatures.map((feature) => {
+          const Icon = feature.icon;
+          return (
+            <div key={feature.title} className="bg-gradient-to-br from-white to-gray-50 rounded-2xl border-2 border-gray-200 p-6 hover:shadow-lg transition-all hover:border-blue-300">
+              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4 shadow-md">
+                <Icon className="w-7 h-7 text-white" />
+              </div>
+              <h4 className="text-gray-900 mb-2">{feature.title}</h4>
+              <p className="text-sm text-gray-600">{feature.desc}</p>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Who Benefits */}
+      <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border-2 border-green-200 p-8">
+        <div className="text-center mb-8">
+          <h3 className="text-2xl text-gray-900 mb-2">Hvem tjener på Hentetjeneste?</h3>
+          <p className="text-gray-600">Alle vinner når kommunikasjonen fungerer</p>
+        </div>
+        <div className="grid gap-6 md:grid-cols-3">
+          <div className="bg-white rounded-2xl p-6 border-2 border-green-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-md">
+              <Users className="w-8 h-8 text-white" />
+            </div>
+            <h4 className="text-lg text-gray-900 mb-3 text-center">Foreldre</h4>
+            <p className="text-sm text-gray-700 text-center leading-relaxed">
+              Få full kontroll, øyeblikkelig varsel ved ulykker, og slippe stress om hvem som kan hente
+            </p>
+          </div>
+          <div className="bg-white rounded-2xl p-6 border-2 border-green-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-md">
+              <Shield className="w-8 h-8 text-white" />
+            </div>
+            <h4 className="text-lg text-gray-900 mb-3 text-center">Barnehageansatte</h4>
+            <p className="text-sm text-gray-700 text-center leading-relaxed">
+              Slippe telefonkø, Excel-kaos og usikkerhet. Alt på ett sted = mer tid til barna
+            </p>
+          </div>
+          <div className="bg-white rounded-2xl p-6 border-2 border-green-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="w-16 h-16 bg-gradient-to-br from-pink-500 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-md">
+              <Heart className="w-8 h-8 text-white" />
+            </div>
+            <h4 className="text-lg text-gray-900 mb-3 text-center">Barn</h4>
+            <p className="text-sm text-gray-700 text-center leading-relaxed">
+              Tryggere miljø, raskere respons ved hendelser, og bedre kommunikasjon mellom hjem og barnehage
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Benefits Grid */}
@@ -99,16 +166,18 @@ export function ValueProposition({ onClose }: ValuePropositionProps) {
           return (
             <div
               key={benefit.title}
-              className={`bg-white rounded-2xl border ${colors.border} p-6 hover:shadow-lg transition-shadow`}
+              className={`bg-white rounded-2xl border-2 ${colors.border} p-6 hover:shadow-xl transition-all`}
             >
-              <div className={`w-14 h-14 bg-gradient-to-br ${colors.gradient} rounded-2xl flex items-center justify-center mb-4 shadow-sm`}>
-                <Icon className="w-7 h-7 text-white" />
+              <div className={`w-16 h-16 bg-gradient-to-br ${colors.gradient} rounded-2xl flex items-center justify-center mb-4 shadow-md`}>
+                <Icon className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-lg text-gray-900 mb-4">{benefit.title}</h3>
+              <h3 className="text-xl text-gray-900 mb-4">{benefit.title}</h3>
               <ul className="space-y-3">
                 {benefit.items.map((item, index) => (
                   <li key={index} className="flex items-start gap-3">
-                    <div className={`w-1.5 h-1.5 ${colors.bg} rounded-full mt-2 flex-shrink-0`}></div>
+                    <div className="w-5 h-5 bg-gradient-to-br from-green-400 to-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <CheckCircle className="w-3 h-3 text-white" />
+                    </div>
                     <span className="text-sm text-gray-700 leading-relaxed">{item}</span>
                   </li>
                 ))}
@@ -119,86 +188,40 @@ export function ValueProposition({ onClose }: ValuePropositionProps) {
       </div>
 
       {/* Security Focus */}
-      <div className="bg-white rounded-2xl border border-blue-200 p-6">
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center flex-shrink-0">
-            <Lock className="w-6 h-6 text-blue-600" />
+      <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-8 text-white shadow-xl">
+        <div className="flex flex-col md:flex-row items-start gap-6">
+          <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0">
+            <Lock className="w-10 h-10 text-white" />
           </div>
           <div className="flex-1">
-            <h3 className="text-gray-900 mb-2">GDPR-sikker fra dag 1</h3>
-            <p className="text-sm text-gray-700 leading-relaxed mb-4">
+            <h3 className="text-2xl mb-3">GDPR-sikker fra dag 1</h3>
+            <p className="text-blue-50 leading-relaxed mb-6">
               Hentetjeneste er designet med personvern i fokus. All sensitiv data håndteres i henhold til GDPR, 
               med kryptering, rollebasert tilgang og full sporbarhet.
             </p>
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-blue-50 rounded-xl p-3">
-                <div className="text-sm text-blue-900">✓ End-to-end kryptering</div>
+              <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 border border-white/30">
+                <div className="text-white">✓ End-to-end kryptering</div>
               </div>
-              <div className="bg-blue-50 rounded-xl p-3">
-                <div className="text-sm text-blue-900">✓ Rollebasert tilgang</div>
+              <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 border border-white/30">
+                <div className="text-white">✓ Rollebasert tilgang</div>
               </div>
-              <div className="bg-blue-50 rounded-xl p-3">
-                <div className="text-sm text-blue-900">✓ Full logg</div>
+              <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 border border-white/30">
+                <div className="text-white">✓ Full sporbarhet</div>
               </div>
-              <div className="bg-blue-50 rounded-xl p-3">
-                <div className="text-sm text-blue-900">✓ Norske servere</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Competitor Comparison */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <TrendingUp className="w-6 h-6 text-gray-600" />
-          <h3 className="text-gray-900">Hvorfor velge oss?</h3>
-        </div>
-        
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-gray-50 rounded-xl p-4">
-              <h4 className="text-sm text-gray-900 mb-2">Andre løsninger</h4>
-              <ul className="space-y-2 text-xs text-gray-600">
-                <li>❌ Kompliserte grensesnitt</li>
-                <li>❌ Kun krysseliste ELLER henting</li>
-                <li>❌ Desktop-fokusert</li>
-                <li>❌ GDPR etterpåklemt</li>
-                <li>❌ Dyr månedspris</li>
-              </ul>
-            </div>
-            <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-xl p-4 border border-green-200">
-              <h4 className="text-sm text-gray-900 mb-2">Hentetjeneste</h4>
-              <ul className="space-y-2 text-xs text-gray-700">
-                <li>✅ Spond-enkel UX</li>
-                <li>✅ Alt-i-ett løsning</li>
-                <li>✅ Mobilvennlig først</li>
-                <li>✅ GDPR-first design</li>
-                <li>✅ Rettferdig pris</li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="bg-purple-50 rounded-xl p-4 border border-purple-200">
-            <div className="flex items-start gap-3">
-              <Smartphone className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <h4 className="text-sm text-purple-900 mb-1">Inspirert av Spond</h4>
-                <p className="text-xs text-purple-700 leading-relaxed">
-                  Vi har tatt lærdom fra Norges mest populære gruppe-app. Folk kjenner allerede designspråket, 
-                  så det er null læringskurve.
-                </p>
+              <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 border border-white/30">
+                <div className="text-white">✓ Norske servere</div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Close Button (if onClose provided) */}
+      {/* Close Button */}
       {onClose && (
         <button
           onClick={onClose}
-          className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl transition-all shadow-lg"
+          className="w-full h-14 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl transition-all shadow-lg text-lg"
         >
           Lukk
         </button>

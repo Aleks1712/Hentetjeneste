@@ -61,9 +61,6 @@ export function ConsentModal({
             <li className="leading-relaxed">
               Du kan trekke tilbake samtykket når som helst
             </li>
-            <li className="leading-relaxed">
-              Dette lagres i henhold til GDPR-regler
-            </li>
           </ul>
         </div>
 

@@ -115,26 +115,27 @@ export function QRCodeShare({ url = window.location.href }: QRCodeShareProps) {
         )}
 
         {/* Instructions */}
-        <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+        <div className="bg-blue-50 rounded-xl p-4 border border-blue-200 mt-4">
           <h4 className="text-sm font-semibold text-blue-900 mb-2">
-            📱 Slik installerer du appen:
+            Slik installerer du appen:
           </h4>
-          <div className="space-y-2 text-sm text-blue-800">
+          
+          <div className="space-y-3 text-xs text-blue-800">
             <div>
-              <strong>Android:</strong>
-              <p className="text-xs text-blue-700 mt-1">
-                1. Åpne URL i Chrome<br />
-                2. Trykk "Installer" når banner dukker opp<br />
-                3. Appen legges til hjemskjermen ✅
+              <div className="font-semibold mb-1">Android (Chrome/Edge):</div>
+              <p className="leading-relaxed">
+                1. Åpne lenken i Chrome<br />
+                2. Trykk &quot;Installer&quot; når banner dukker opp<br />
+                3. Appen legges til hjemskjermen
               </p>
             </div>
-            <div className="mt-3">
-              <strong>iPhone:</strong>
-              <p className="text-xs text-blue-700 mt-1">
-                1. Åpne URL i Safari<br />
-                2. Trykk Del-knappen (📤)<br />
-                3. Velg "Legg til på Hjem-skjerm"<br />
-                4. Appen legges til hjemskjermen ✅
+            \n            <div>
+              <div className="font-semibold mb-1">iOS (Safari):</div>
+              <p className="leading-relaxed">
+                1. Åpne lenken i Safari<br />
+                2. Trykk Del-knappen (firkant med pil)<br />
+                3. Velg &quot;Legg til på Hjem-skjerm&quot;<br />
+                4. Appen legges til hjemskjermen
               </p>
             </div>
           </div>

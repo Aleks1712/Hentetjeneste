@@ -47,12 +47,22 @@ export function IncidentList({ incidents, viewType }: IncidentListProps) {
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    // Check if same day
+    const isSameDay = date.getDate() === now.getDate() &&
+                      date.getMonth() === now.getMonth() &&
+                      date.getFullYear() === now.getFullYear();
+    
+    // Check if yesterday
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const isYesterday = date.getDate() === yesterday.getDate() &&
+                        date.getMonth() === yesterday.getMonth() &&
+                        date.getFullYear() === yesterday.getFullYear();
 
-    if (diffDays === 0) {
+    if (isSameDay) {
       return 'I dag kl. ' + date.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
-    } else if (diffDays === 1) {
+    } else if (isYesterday) {
       return 'I går kl. ' + date.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
     } else {
       return date.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' }) + ' kl. ' + date.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });

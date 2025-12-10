@@ -7,12 +7,14 @@ interface ChildCardProps {
   onSelect: () => void;
   isSelected: boolean;
   viewType: 'parent' | 'staff';
+  onApprovePickup?: (childId: string) => void;
 }
 
-export function ChildCard({ child, onSelect, isSelected, viewType }: ChildCardProps) {
+export function ChildCard({ child, onSelect, isSelected, viewType, onApprovePickup }: ChildCardProps) {
   const [localStatus, setLocalStatus] = useState(child.status);
   const [checkInTime, setCheckInTime] = useState(child.checkInTime);
   const [checkOutTime, setCheckOutTime] = useState(child.checkOutTime);
+  const [pickupStatus, setPickupStatus] = useState(child.pickupStatus);
 
   const handleCheckIn = () => {
     const now = new Date();
@@ -26,6 +28,13 @@ export function ChildCard({ child, onSelect, isSelected, viewType }: ChildCardPr
     const timeString = now.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
     setLocalStatus('home');
     setCheckOutTime(timeString);
+  };
+
+  const handleApprovePickup = () => {
+    setPickupStatus('approved');
+    if (onApprovePickup) {
+      onApprovePickup(child.id);
+    }
   };
 
   const getStatusBadge = () => {
@@ -94,11 +103,23 @@ export function ChildCard({ child, onSelect, isSelected, viewType }: ChildCardPr
         )}
 
         {/* Pickup Status (Staff View Only) */}
-        {viewType === 'staff' && child.pickupStatus === 'pending' && (
+        {viewType === 'staff' && pickupStatus === 'pending' && (
           <div className="mb-5 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
             <div className="flex items-center gap-2 text-sm text-yellow-800">
               <Clock className="w-4 h-4" />
               <span>Henting forespurt av {child.pickupPerson}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Approved Pickup Status */}
+        {viewType === 'staff' && pickupStatus === 'approved' && (
+          <div className="mb-5 p-4 bg-green-50 border border-green-200 rounded-xl">
+            <div className="flex items-center gap-2 text-sm text-green-800">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <span>Klar til henting av {child.pickupPerson}</span>
             </div>
           </div>
         )}
@@ -132,11 +153,11 @@ export function ChildCard({ child, onSelect, isSelected, viewType }: ChildCardPr
               </button>
             )}
 
-            {child.pickupStatus === 'pending' && (
+            {pickupStatus === 'pending' && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  // Handle approval
+                  handleApprovePickup();
                 }}
                 className="flex-1 h-12 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white rounded-xl transition-colors shadow-sm"
               >

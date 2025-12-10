@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, AlertCircle } from 'lucide-react';
+import { X, AlertCircle, HeartPulse, AlertTriangle, Info } from 'lucide-react';
 
 interface IncidentReportProps {
   childId: string;
@@ -9,7 +9,7 @@ interface IncidentReportProps {
 }
 
 export function IncidentReport({ childId, childName, onClose, onSubmit }: IncidentReportProps) {
-  const [type, setType] = useState<'injury' | 'illness' | 'info' | 'emergency'>('info');
+  const [incidentType, setIncidentType] = useState<'injury' | 'illness' | 'info' | 'emergency'>('info');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [severity, setSeverity] = useState<'low' | 'medium' | 'high'>('low');
@@ -22,7 +22,7 @@ export function IncidentReport({ childId, childName, onClose, onSubmit }: Incide
     const incident = {
       id: `incident-${Date.now()}`,
       childId,
-      type,
+      type: incidentType,
       title,
       description,
       reportedBy: 'Pedagog Anna Berg', // Mock user
@@ -61,57 +61,65 @@ export function IncidentReport({ childId, childName, onClose, onSubmit }: Incide
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
-                onClick={() => setType('injury')}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  type === 'injury'
-                    ? 'border-red-500 bg-red-50'
-                    : 'border-gray-200 bg-white hover:border-gray-300'
+                onClick={() => setIncidentType('injury')}
+                className={`flex-1 p-4 rounded-xl border-2 transition-all ${
+                  incidentType === 'injury'
+                    ? 'border-red-600 bg-red-50'
+                    : 'border-gray-200 bg-white hover:border-red-300'
                 }`}
               >
-                <div className="text-center">
-                  <div className="text-2xl mb-1">🤕</div>
+                <div className="flex flex-col items-center gap-2">
+                  <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                    <HeartPulse className="w-6 h-6 text-red-600" />
+                  </div>
                   <div className="text-sm text-gray-900">Skade</div>
                 </div>
               </button>
               <button
                 type="button"
-                onClick={() => setType('illness')}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  type === 'illness'
-                    ? 'border-orange-500 bg-orange-50'
-                    : 'border-gray-200 bg-white hover:border-gray-300'
+                onClick={() => setIncidentType('illness')}
+                className={`flex-1 p-4 rounded-xl border-2 transition-all ${
+                  incidentType === 'illness'
+                    ? 'border-orange-600 bg-orange-50'
+                    : 'border-gray-200 bg-white hover:border-orange-300'
                 }`}
               >
-                <div className="text-center">
-                  <div className="text-2xl mb-1">🤒</div>
+                <div className="flex flex-col items-center gap-2">
+                  <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                    <AlertTriangle className="w-6 h-6 text-orange-600" />
+                  </div>
                   <div className="text-sm text-gray-900">Sykdom</div>
                 </div>
               </button>
               <button
                 type="button"
-                onClick={() => setType('info')}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  type === 'info'
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 bg-white hover:border-gray-300'
+                onClick={() => setIncidentType('info')}
+                className={`flex-1 p-4 rounded-xl border-2 transition-all ${
+                  incidentType === 'info'
+                    ? 'border-blue-600 bg-blue-50'
+                    : 'border-gray-200 bg-white hover:border-blue-300'
                 }`}
               >
-                <div className="text-center">
-                  <div className="text-2xl mb-1">ℹ️</div>
+                <div className="flex flex-col items-center gap-2">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                    <Info className="w-6 h-6 text-blue-600" />
+                  </div>
                   <div className="text-sm text-gray-900">Info</div>
                 </div>
               </button>
               <button
                 type="button"
-                onClick={() => setType('emergency')}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  type === 'emergency'
+                onClick={() => setIncidentType('emergency')}
+                className={`flex-1 p-4 rounded-xl border-2 transition-all ${
+                  incidentType === 'emergency'
                     ? 'border-red-700 bg-red-100'
-                    : 'border-gray-200 bg-white hover:border-gray-300'
+                    : 'border-gray-200 bg-white hover:border-red-400'
                 }`}
               >
-                <div className="text-center">
-                  <div className="text-2xl mb-1">🚨</div>
+                <div className="flex flex-col items-center gap-2">
+                  <div className="w-12 h-12 bg-red-200 rounded-full flex items-center justify-center">
+                    <AlertCircle className="w-6 h-6 text-red-700" />
+                  </div>
                   <div className="text-sm text-gray-900">Nødstilfelle</div>
                 </div>
               </button>
