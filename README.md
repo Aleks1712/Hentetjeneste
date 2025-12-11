@@ -11,17 +11,40 @@ Hentetjeneste is a small web application for kindergarten pickup that demonstrat
 This repository contains the frontend, database migrations (for Supabase), and supporting scripts and documentation.
 
 ## Quick start (development)
-1. Copy `.env.example` to `.env` and fill in the keys:
-  - `VITE_SUPABASE_URL` — your Supabase project's URL
-  - `VITE_SUPABASE_ANON_KEY` — your Supabase project's anon key
 
-2. Install dependencies and start the dev server:
+### 1. Klone repoet
+```bash
+git clone https://github.com/Aleks1712/Hentetjeneste.git
+cd Hentetjeneste
+```
+
+### 2. Installer dependencies
 ```bash
 npm install
+```
+
+### 3. Sett opp miljøvariabler
+```bash
+# Kopier .env.example til .env
+cp .env.example .env
+
+# Rediger .env og legg inn din Supabase API-nøkkel
+# Hent nøkkelen fra: https://supabase.com/dashboard/project/gvqxcdcphggotggfvqbe/settings/api
+```
+
+**Miljøvariabler:**
+- `VITE_SUPABASE_URL` — din Supabase project URL (allerede satt)
+- `VITE_SUPABASE_ANON_KEY` — din Supabase anon/public key (må legges inn)
+
+### 4. Start utviklingsserveren
+```bash
 npm run dev
 ```
 
-3. Open the app (Vite shows the URL, e.g. http://localhost:5173) and test flows.
+### 5. Åpne applikasjonen
+Applikasjonen åpnes automatisk på http://localhost:3000 (eller porten Vite viser)
+
+**Note:** Applikasjonen fungerer også uten Supabase-konfigurasjon med demo-data!
 
 ## Supabase setup (migrations & seeding)
 There are SQL migrations in `supabase/migrations/`:
