@@ -585,3 +585,177 @@ export const realtimeService = {
       .subscribe();
   },
 };
+
+// ============================================
+// CONSENT TRACKING SERVICES (GDPR)
+// ============================================
+
+export const consentService = {
+  /**
+   * Get user's consent preferences
+   */
+  async getConsentPreferences(userId: string) {
+    const { data, error } = await (supabase as any)
+      .from('consent_preferences')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+    
+    if (error && error.code === 'PGRST116') {
+      // No consent record yet, return defaults
+      return {
+        user_id: userId,
+        data_sharing: false,
+        analytics: true,
+        email_notifications: true,
+        push_notifications: true,
+      };
+    }
+    
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Save user's consent preferences
+   */
+  async saveConsentPreferences(userId: string, preferences: {
+    data_sharing?: boolean;
+    analytics?: boolean;
+    email_notifications?: boolean;
+    push_notifications?: boolean;
+  }) {
+    const { data, error } = await (supabase as any)
+      .from('consent_preferences')
+      .upsert({
+        user_id: userId,
+        ...preferences,
+        last_updated: new Date().toISOString(),
+      } as any)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Delete user's consent preferences (called on account deletion)
+   */
+  async deleteConsentPreferences(userId: string) {
+    const { error } = await supabase
+      .from('consent_preferences')
+      .delete()
+      .eq('user_id', userId);
+    
+    if (error) throw error;
+  },
+};
+
+// ============================================
+// DATA EXPORT SERVICES (GDPR Art. 20)
+// ============================================
+
+export const dataExportService = {
+  /**
+   * Export all user data as JSON (GDPR Art. 15 & 20)
+   */
+  async exportUserData(userId: string) {
+    try {
+      const [profile, children, logs, incidents, messages, consent] = await Promise.all([
+        profileService.getProfile(userId).catch(() => null),
+        childrenService.getChildren(userId).catch(() => []),
+        attendanceService.getAttendanceLogs('').catch(() => []),
+        incidentsService.getIncidents('').catch(() => []),
+        messagesService.getMessages(userId, '').catch(() => []),
+        consentService.getConsentPreferences(userId).catch(() => null),
+      ]);
+
+      const exportData = {
+        exportDate: new Date().toISOString(),
+        profile,
+        children,
+        attendanceLogs: logs,
+        incidents,
+        messages,
+        consentPreferences: consent,
+        note: 'This is your personal data export from Hentetjeneste. GDPR Art. 20 - Right to data portability',
+      };
+
+      return exportData;
+    } catch (error) {
+      console.error('Error exporting user data:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Download user data as JSON file
+   */
+  async downloadUserDataAsJSON(userId: string, fullName: string) {
+    const data = await this.exportUserData(userId);
+    const jsonString = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `hentetjeneste-export-${fullName}-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  },
+
+  /**
+   * Download user data as CSV
+   */
+  async downloadUserDataAsCSV(userId: string, fullName: string) {
+    const data = await this.exportUserData(userId);
+    
+    // Flatten data to CSV
+    let csv = 'Hentetjeneste Data Export - GDPR Article 20\n';
+    csv += `Export Date: ${data.exportDate}\n\n`;
+    
+    // Profile section
+    if (data.profile) {
+      csv += 'PROFILE,\n';
+      csv += `Email,${data.profile.email}\n`;
+      csv += `Name,${data.profile.full_name}\n`;
+      csv += `Phone,${data.profile.phone}\n`;
+      csv += `Role,${data.profile.role}\n\n`;
+    }
+    
+    // Children section
+    if (data.children.length > 0) {
+      csv += 'CHILDREN,\n';
+      csv += 'Name,Date of Birth,Group,Status\n';
+      data.children.forEach((child: any) => {
+        csv += `${child.name},${child.date_of_birth},${child.group},${child.status}\n`;
+      });
+      csv += '\n';
+    }
+    
+    // Messages count
+    csv += 'MESSAGES,\n';
+    csv += `Total Messages,${data.messages?.length || 0}\n\n`;
+    
+    // Consent preferences
+    if (data.consentPreferences) {
+      csv += 'CONSENT PREFERENCES,\n';
+      csv += `Data Sharing,${data.consentPreferences.data_sharing}\n`;
+      csv += `Analytics,${data.consentPreferences.analytics}\n`;
+      csv += `Email Notifications,${data.consentPreferences.email_notifications}\n`;
+      csv += `Push Notifications,${data.consentPreferences.push_notifications}\n`;
+    }
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `hentetjeneste-export-${fullName}-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  },
+};

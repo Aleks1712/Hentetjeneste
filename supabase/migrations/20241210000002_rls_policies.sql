@@ -57,6 +57,13 @@ CREATE POLICY "Users can send messages" ON public.messages FOR INSERT WITH CHECK
 CREATE POLICY "Users can update received messages" ON public.messages FOR UPDATE USING (receiver_id = auth.uid());
 CREATE POLICY "Users can delete own messages" ON public.messages FOR DELETE USING (sender_id = auth.uid() OR receiver_id = auth.uid());
 
+-- CONSENT PREFERENCES POLICIES (GDPR)
+CREATE POLICY "Users can view own consent preferences" ON public.consent_preferences FOR SELECT USING (user_id = auth.uid());
+CREATE POLICY "Users can update own consent preferences" ON public.consent_preferences FOR UPDATE USING (user_id = auth.uid());
+CREATE POLICY "Users can insert own consent preferences" ON public.consent_preferences FOR INSERT WITH CHECK (user_id = auth.uid());
+CREATE POLICY "Users can delete own consent preferences" ON public.consent_preferences FOR DELETE USING (user_id = auth.uid());
+CREATE POLICY "Staff can view all consent preferences" ON public.consent_preferences FOR SELECT USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('staff', 'admin')));
+
 -- HELPER FUNCTIONS
 CREATE OR REPLACE FUNCTION public.is_staff()
 RETURNS BOOLEAN AS $$
