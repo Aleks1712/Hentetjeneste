@@ -29,7 +29,8 @@ npm install
 cp .env.example .env
 
 # Rediger .env og legg inn din Supabase API-nøkkel
-# Hent nøkkelen fra: https://supabase.com/dashboard/project/gvqxcdcphggotggfvqbe/settings/api
+# Hent nøkkelen fra: https://supabase.com/dashboard/project/[YOUR_PROJECT_ID]/settings/api
+# Erstatt [YOUR_PROJECT_ID] med ditt faktiske Supabase project ID
 ```
 
 **Miljøvariabler:**
@@ -55,9 +56,11 @@ You can run these via Supabase Dashboard -> SQL Editor or using the Supabase CLI
 ```bash
 npm i -g supabase
 supabase login
-supabase link --project-ref gvqxcdcphggotggfvqbe
+supabase link --project-ref [YOUR_PROJECT_ID]
 supabase db push
 ```
+
+**Note:** Erstatt `[YOUR_PROJECT_ID]` med ditt faktiske Supabase project ID.
 
 The `scripts/seed.sql` file contains sample data you can paste in the SQL editor (replace `<PARENT_UUID>` and `<STAFF_UUID>` with actual Auth user IDs if needed).
 

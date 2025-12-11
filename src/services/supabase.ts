@@ -2,8 +2,10 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './api-types';
 
 // Supabase client configuration
-// Get these from your Supabase project settings: https://supabase.com/dashboard/project/gvqxcdcphggotggfvqbe/settings/api
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://gvqxcdcphggotggfvqbe.supabase.co';
+// Get these from your Supabase project settings: https://supabase.com/dashboard/project/[YOUR_PROJECT_ID]/settings/api
+// Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file
+// Note: If not configured, the app will use demo/mock data as fallback
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key';
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {

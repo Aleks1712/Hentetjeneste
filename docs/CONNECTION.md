@@ -5,8 +5,10 @@ This is a quick, clear guide for connecting your Vite/React app to Supabase and 
 ## 1) Environment variables
 - Add these values to `.env` (root):
 
-VITE_SUPABASE_URL=https://gvqxcdcphggotggfvqbe.supabase.co
+VITE_SUPABASE_URL=https://[YOUR_PROJECT_ID].supabase.co
 VITE_SUPABASE_ANON_KEY=<your-anon-key-from-supabase>
+
+**Note:** Erstatt `[YOUR_PROJECT_ID]` med ditt faktiske Supabase project ID.
 
 - Do NOT commit `.env` with secret keys. Add `.env` to `.gitignore`.
 
@@ -47,9 +49,11 @@ npm run dev
 ```bash
 npm install -g supabase
 supabase login
-supabase link --project-ref gvqxcdcphggotggfvqbe
+supabase link --project-ref [YOUR_PROJECT_ID]
 supabase db push
 ```
+
+**Note:** Erstatt `[YOUR_PROJECT_ID]` med ditt faktiske Supabase project ID.
 
 If you cannot use the CLI in Codespaces, use SQL Editor in the dashboard.
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { LoginScreen } from './components/LoginScreen';
 import { OnboardingScreen } from './components/OnboardingScreen';
 import { ParentView } from './components/ParentView';
@@ -10,6 +10,7 @@ import { ChatModal } from './components/ChatModal';
 import { InstallPWA } from './components/InstallPWA';
 import { Language } from './translations/translations';
 import { Toaster } from 'sonner';
+import { authService, supabase } from './services/supabase';
 
 type UserRole = 'parent' | 'staff';
 type AppState = 'login' | 'onboarding' | 'main';
@@ -21,6 +22,70 @@ export default function App() {
   const [showChat, setShowChat] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [language, setLanguage] = useState<Language>('no');
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const authInitialized = useRef(false);
+  const isHandlingAuthChange = useRef(false);
+
+  // Check for existing session on mount/refresh
+  useEffect(() => {
+    // Prevent multiple initializations
+    if (authInitialized.current) return;
+    authInitialized.current = true;
+
+    const checkAuth = async () => {
+      try {
+        const session = await authService.getSession();
+        if (session) {
+          // User is logged in, go directly to main app
+          setAppState('main');
+        } else {
+          // No session, show login screen
+          setAppState('login');
+        }
+      } catch (error) {
+        // If Supabase is not configured or error, use demo mode
+        console.log('Supabase not configured, using demo mode');
+        setAppState('login');
+      } finally {
+        setIsCheckingAuth(false);
+      }
+    };
+
+    checkAuth();
+
+    // Listen for auth state changes - but ignore TOKEN_REFRESH to prevent loops
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // Prevent handling auth changes while already handling one
+      if (isHandlingAuthChange.current) return;
+      
+      // Ignore TOKEN_REFRESH events - these happen automatically and shouldn't change UI
+      if (event === 'TOKEN_REFRESHED') {
+        return;
+      }
+
+      isHandlingAuthChange.current = true;
+      
+      // Only update state if it actually needs to change
+      setAppState((currentState) => {
+        if (session && currentState !== 'main' && currentState !== 'onboarding') {
+          return 'main';
+        } else if (!session && currentState !== 'login') {
+          return 'login';
+        }
+        return currentState;
+      });
+
+      // Reset flag after a short delay to allow state updates
+      setTimeout(() => {
+        isHandlingAuthChange.current = false;
+      }, 100);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+      authInitialized.current = false;
+    };
+  }, []);
 
   const handleLogin = () => {
     setAppState('onboarding');
@@ -30,9 +95,26 @@ export default function App() {
     setAppState('main');
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await authService.signOut();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
     setAppState('login');
   };
+
+  // Show loading screen while checking auth
+  if (isCheckingAuth) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Laster inn...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Show login screen
   if (appState === 'login') {
