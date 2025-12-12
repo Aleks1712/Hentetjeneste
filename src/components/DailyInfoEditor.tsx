@@ -1,6 +1,17 @@
-import { useState } from 'react';
-import { X, Calendar, UtensilsCrossed, Sparkles, Megaphone, Plus, Edit2, Trash2, Save } from 'lucide-react';
-import { DailyInfo } from '../data/mockData';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  Modal,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
+import { useTheme } from '../context-native/ThemeContext';
+import { DailyInfo } from '../data-native/mockData';
 
 interface DailyInfoEditorProps {
   info: DailyInfo[];
@@ -9,6 +20,7 @@ interface DailyInfoEditorProps {
 }
 
 export function DailyInfoEditor({ info, onClose, onSave }: DailyInfoEditorProps) {
+  const { colors } = useTheme();
   const [items, setItems] = useState<DailyInfo[]>(info);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showAddNew, setShowAddNew] = useState(false);
@@ -21,29 +33,20 @@ export function DailyInfoEditor({ info, onClose, onSave }: DailyInfoEditorProps)
     date: new Date().toISOString().split('T')[0],
   });
 
+  // Edit state
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+
   const getInfoIcon = (type: string) => {
     switch (type) {
       case 'menu':
-        return UtensilsCrossed;
+        return '🍽️';
       case 'activity':
-        return Sparkles;
+        return '🎨';
       case 'announcement':
-        return Megaphone;
+        return '📢';
       default:
-        return Calendar;
-    }
-  };
-
-  const getTypeStyles = (type: string) => {
-    switch (type) {
-      case 'menu':
-        return 'bg-orange-100 text-orange-600';
-      case 'activity':
-        return 'bg-purple-100 text-purple-600';
-      case 'announcement':
-        return 'bg-blue-100 text-blue-600';
-      default:
-        return 'bg-gray-100 text-gray-600';
+        return 'ℹ️';
     }
   };
 
@@ -60,21 +63,36 @@ export function DailyInfoEditor({ info, onClose, onSave }: DailyInfoEditorProps)
     }
   };
 
-  const handleEdit = (itemId: string) => {
-    setEditingId(itemId);
+  const getTypeBgColor = (type: string) => {
+    switch (type) {
+      case 'menu':
+        return '#FFF7ED';
+      case 'activity':
+        return '#FAF5FF';
+      case 'announcement':
+        return '#EFF6FF';
+      default:
+        return '#F3F4F6';
+    }
   };
 
-  const handleSaveEdit = (itemId: string, updatedTitle: string, updatedDescription: string) => {
-    setItems(items.map(item => 
-      item.id === itemId 
-        ? { ...item, title: updatedTitle, description: updatedDescription }
-        : item
-    ));
+  const handleEdit = (item: DailyInfo) => {
+    setEditingId(item.id);
+    setEditTitle(item.title);
+    setEditDescription(item.description);
+  };
+
+  const handleSaveEdit = (itemId: string) => {
+    setItems(
+      items.map((item) =>
+        item.id === itemId ? { ...item, title: editTitle, description: editDescription } : item
+      )
+    );
     setEditingId(null);
   };
 
   const handleDelete = (itemId: string) => {
-    setItems(items.filter(item => item.id !== itemId));
+    setItems(items.filter((item) => item.id !== itemId));
   };
 
   const handleAddNew = () => {
@@ -104,243 +122,487 @@ export function DailyInfoEditor({ info, onClose, onSave }: DailyInfoEditorProps)
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+    <Modal visible={true} animationType="slide" presentationStyle="pageSheet">
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={[styles.container, { backgroundColor: colors.background }]}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-              <Calendar className="w-5 h-5 text-purple-600" />
-            </div>
-            <div>
-              <h2 className="text-xl text-gray-900">Rediger daglig info</h2>
-              <p className="text-sm text-gray-600">Oppdater informasjon som sendes til foreldre</p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-10 h-10 hover:bg-gray-100 rounded-xl flex items-center justify-center transition-colors"
-          >
-            <X className="w-5 h-5 text-gray-600" />
-          </button>
-        </div>
+        <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+          <View style={styles.headerLeft}>
+            <View style={[styles.headerIcon, { backgroundColor: colors.primary + '20' }]}>
+              <Text style={styles.headerIconText}>📅</Text>
+            </View>
+            <View>
+              <Text style={[styles.headerTitle, { color: colors.text }]}>Rediger daglig info</Text>
+              <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+                Oppdater informasjon til foreldre
+              </Text>
+            </View>
+          </View>
+          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <Text style={[styles.closeButtonText, { color: colors.textSecondary }]}>✕</Text>
+          </TouchableOpacity>
+        </View>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
           {/* Add New Button */}
-          <button
-            onClick={() => setShowAddNew(!showAddNew)}
-            className="w-full mb-6 p-4 border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50 rounded-2xl transition-all flex items-center justify-center gap-2 text-gray-600 hover:text-blue-600"
+          <TouchableOpacity
+            onPress={() => setShowAddNew(!showAddNew)}
+            style={[styles.addButton, { borderColor: colors.border }]}
           >
-            <Plus className="w-5 h-5" />
-            <span>Legg til ny info</span>
-          </button>
+            <Text style={styles.addButtonIcon}>➕</Text>
+            <Text style={[styles.addButtonText, { color: colors.textSecondary }]}>
+              Legg til ny info
+            </Text>
+          </TouchableOpacity>
 
           {/* Add New Form */}
           {showAddNew && (
-            <div className="mb-6 bg-blue-50 rounded-2xl border-2 border-blue-200 p-6">
-              <h3 className="text-gray-900 mb-4">Ny informasjon</h3>
-              
-              <div className="space-y-4">
-                {/* Type selector */}
-                <div>
-                  <label className="block text-sm text-gray-700 mb-2">Type</label>
-                  <select
-                    value={newItem.type}
-                    onChange={(e) => setNewItem({ ...newItem, type: e.target.value as any })}
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+            <View style={[styles.formContainer, { backgroundColor: colors.primary + '10', borderColor: colors.primary + '30' }]}>
+              <Text style={[styles.formTitle, { color: colors.text }]}>Ny informasjon</Text>
+
+              {/* Type Selector */}
+              <Text style={[styles.label, { color: colors.text }]}>Type</Text>
+              <View style={styles.typeSelector}>
+                {(['announcement', 'menu', 'activity'] as const).map((type) => (
+                  <TouchableOpacity
+                    key={type}
+                    onPress={() => setNewItem({ ...newItem, type })}
+                    style={[
+                      styles.typeButton,
+                      { backgroundColor: colors.surface, borderColor: colors.border },
+                      newItem.type === type && { backgroundColor: colors.primary, borderColor: colors.primary },
+                    ]}
                   >
-                    <option value="announcement">Beskjed</option>
-                    <option value="menu">Matmeny</option>
-                    <option value="activity">Aktivitet</option>
-                  </select>
-                </div>
+                    <Text style={[styles.typeButtonText, { color: newItem.type === type ? '#FFFFFF' : colors.text }]}>
+                      {getTypeLabel(type)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
 
-                {/* Title */}
-                <div>
-                  <label className="block text-sm text-gray-700 mb-2">Tittel</label>
-                  <input
-                    type="text"
-                    value={newItem.title}
-                    onChange={(e) => setNewItem({ ...newItem, title: e.target.value })}
-                    placeholder="F.eks: Fiskeboller og grønnsaker"
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
+              {/* Title */}
+              <Text style={[styles.label, { color: colors.text }]}>Tittel</Text>
+              <TextInput
+                value={newItem.title}
+                onChangeText={(text) => setNewItem({ ...newItem, title: text })}
+                placeholder="F.eks: Fiskeboller og grønnsaker"
+                placeholderTextColor={colors.textSecondary}
+                style={[styles.input, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
+              />
 
-                {/* Description */}
-                <div>
-                  <label className="block text-sm text-gray-700 mb-2">Beskrivelse</label>
-                  <textarea
-                    value={newItem.description}
-                    onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
-                    placeholder="Skriv mer detaljer..."
-                    rows={3}
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                  />
-                </div>
+              {/* Description */}
+              <Text style={[styles.label, { color: colors.text }]}>Beskrivelse</Text>
+              <TextInput
+                value={newItem.description}
+                onChangeText={(text) => setNewItem({ ...newItem, description: text })}
+                placeholder="Skriv mer detaljer..."
+                placeholderTextColor={colors.textSecondary}
+                multiline
+                numberOfLines={3}
+                style={[styles.textArea, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
+              />
 
-                {/* Date */}
-                <div>
-                  <label className="block text-sm text-gray-700 mb-2">Dato</label>
-                  <input
-                    type="date"
-                    value={newItem.date}
-                    onChange={(e) => setNewItem({ ...newItem, date: e.target.value })}
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                {/* Group (optional) */}
-                <div>
-                  <label className="block text-sm text-gray-700 mb-2">Gruppe (valgfritt)</label>
-                  <select
-                    value={newItem.targetGroup || ''}
-                    onChange={(e) => setNewItem({ ...newItem, targetGroup: e.target.value || undefined })}
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              {/* Group Selector */}
+              <Text style={[styles.label, { color: colors.text }]}>Gruppe (valgfritt)</Text>
+              <View style={styles.typeSelector}>
+                {(['', 'Blåklokka', 'Solstråla'] as const).map((group) => (
+                  <TouchableOpacity
+                    key={group || 'all'}
+                    onPress={() => setNewItem({ ...newItem, targetGroup: group || undefined })}
+                    style={[
+                      styles.typeButton,
+                      { backgroundColor: colors.surface, borderColor: colors.border },
+                      (newItem.targetGroup || '') === group && { backgroundColor: colors.primary, borderColor: colors.primary },
+                    ]}
                   >
-                    <option value="">Alle grupper</option>
-                    <option value="Blåklokka">Blåklokka</option>
-                    <option value="Solstråla">Solstråla</option>
-                  </select>
-                </div>
+                    <Text style={[styles.typeButtonText, { color: (newItem.targetGroup || '') === group ? '#FFFFFF' : colors.text }]}>
+                      {group || 'Alle'}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
 
-                <div className="flex gap-3">
-                  <button
-                    onClick={handleAddNew}
-                    disabled={!newItem.title || !newItem.description}
-                    className="flex-1 h-11 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl transition-colors flex items-center justify-center gap-2"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Legg til
-                  </button>
-                  <button
-                    onClick={() => setShowAddNew(false)}
-                    className="h-11 px-6 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl transition-colors"
-                  >
-                    Avbryt
-                  </button>
-                </div>
-              </div>
-            </div>
+              {/* Action Buttons */}
+              <View style={styles.formActions}>
+                <TouchableOpacity
+                  onPress={handleAddNew}
+                  disabled={!newItem.title || !newItem.description}
+                  style={[
+                    styles.primaryButton,
+                    { backgroundColor: colors.primary },
+                    (!newItem.title || !newItem.description) && styles.buttonDisabled,
+                  ]}
+                >
+                  <Text style={styles.primaryButtonText}>Legg til</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setShowAddNew(false)} style={[styles.secondaryButton, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                  <Text style={[styles.secondaryButtonText, { color: colors.text }]}>Avbryt</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           )}
 
           {/* Existing Items */}
-          <div className="space-y-3">
-            {items.map((item) => {
-              const Icon = getInfoIcon(item.type);
-              const isEditing = editingId === item.id;
-              const [editTitle, setEditTitle] = useState(item.title);
-              const [editDescription, setEditDescription] = useState(item.description);
+          {items.map((item) => {
+            const isEditing = editingId === item.id;
 
-              return (
-                <div
-                  key={item.id}
-                  className="bg-white rounded-2xl border border-gray-200 p-5"
-                >
-                  {isEditing ? (
-                    <div className="space-y-3">
-                      <input
-                        type="text"
-                        value={editTitle}
-                        onChange={(e) => setEditTitle(e.target.value)}
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                      <textarea
-                        value={editDescription}
-                        onChange={(e) => setEditDescription(e.target.value)}
-                        rows={3}
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                      />
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleSaveEdit(item.id, editTitle, editDescription)}
-                          className="h-10 px-4 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-colors flex items-center gap-2"
-                        >
-                          <Save className="w-4 h-4" />
-                          Lagre
-                        </button>
-                        <button
-                          onClick={() => setEditingId(null)}
-                          className="h-10 px-4 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl transition-colors"
-                        >
-                          Avbryt
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-start gap-4">
-                      <div className={`w-12 h-12 ${getTypeStyles(item.type)} rounded-2xl flex items-center justify-center flex-shrink-0`}>
-                        <Icon className="w-6 h-6" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <h4 className="text-gray-900">{item.title}</h4>
-                          <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs flex-shrink-0">
-                            {getTypeLabel(item.type)}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-700 leading-relaxed mb-3">
+            return (
+              <View
+                key={item.id}
+                style={[styles.itemCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              >
+                {isEditing ? (
+                  <View>
+                    <TextInput
+                      value={editTitle}
+                      onChangeText={setEditTitle}
+                      style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border, marginBottom: 8 }]}
+                    />
+                    <TextInput
+                      value={editDescription}
+                      onChangeText={setEditDescription}
+                      multiline
+                      numberOfLines={3}
+                      style={[styles.textArea, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
+                    />
+                    <View style={styles.editActions}>
+                      <TouchableOpacity
+                        onPress={() => handleSaveEdit(item.id)}
+                        style={[styles.primaryButton, { backgroundColor: '#10B981' }]}
+                      >
+                        <Text style={styles.primaryButtonText}>💾 Lagre</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => setEditingId(null)}
+                        style={[styles.secondaryButton, { backgroundColor: colors.background, borderColor: colors.border }]}
+                      >
+                        <Text style={[styles.secondaryButtonText, { color: colors.text }]}>Avbryt</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ) : (
+                  <View>
+                    <View style={styles.itemHeader}>
+                      <View style={[styles.itemIconContainer, { backgroundColor: getTypeBgColor(item.type) }]}>
+                        <Text style={styles.itemIcon}>{getInfoIcon(item.type)}</Text>
+                      </View>
+                      <View style={styles.itemContent}>
+                        <View style={styles.itemTitleRow}>
+                          <Text style={[styles.itemTitle, { color: colors.text }]}>{item.title}</Text>
+                          <View style={[styles.typeBadge, { backgroundColor: getTypeBgColor(item.type) }]}>
+                            <Text style={styles.typeBadgeText}>{getTypeLabel(item.type)}</Text>
+                          </View>
+                        </View>
+                        <Text style={[styles.itemDescription, { color: colors.textSecondary }]}>
                           {item.description}
-                        </p>
-                        <div className="flex items-center gap-3">
+                        </Text>
+                        <View style={styles.itemFooter}>
                           {item.targetGroup && (
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
-                              <span className="text-xs text-purple-700">For {item.targetGroup}</span>
-                            </div>
+                            <View style={styles.groupBadge}>
+                              <View style={[styles.groupDot, { backgroundColor: colors.primary }]} />
+                              <Text style={[styles.groupText, { color: colors.primary }]}>
+                                For {item.targetGroup}
+                              </Text>
+                            </View>
                           )}
-                          <span className="text-xs text-gray-500">
+                          <Text style={[styles.dateText, { color: colors.textSecondary }]}>
                             {new Date(item.date).toLocaleDateString('no-NO', { day: 'numeric', month: 'long' })}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleEdit(item.id)}
-                          className="w-9 h-9 hover:bg-blue-100 text-blue-600 rounded-xl transition-colors flex items-center justify-center"
-                          title="Rediger"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(item.id)}
-                          className="w-9 h-9 hover:bg-red-100 text-red-600 rounded-xl transition-colors flex items-center justify-center"
-                          title="Slett"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                    <View style={styles.itemActions}>
+                      <TouchableOpacity
+                        onPress={() => handleEdit(item)}
+                        style={[styles.actionButton, { backgroundColor: colors.primary + '15' }]}
+                      >
+                        <Text style={styles.actionButtonText}>✏️ Rediger</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => handleDelete(item.id)}
+                        style={[styles.actionButton, { backgroundColor: '#FEE2E2' }]}
+                      >
+                        <Text style={styles.actionButtonText}>🗑️ Slett</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+              </View>
+            );
+          })}
+        </ScrollView>
 
         {/* Footer */}
-        <div className="p-6 border-t border-gray-200 flex items-center justify-between">
-          <p className="text-sm text-gray-600">
+        <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
+          <Text style={[styles.footerText, { color: colors.textSecondary }]}>
             {items.length} element{items.length !== 1 ? 'er' : ''}
-          </p>
-          <div className="flex gap-3">
-            <button
-              onClick={onClose}
-              className="h-11 px-6 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl transition-colors"
-            >
-              Avbryt
-            </button>
-            <button
-              onClick={handleSaveAll}
-              className="h-11 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors flex items-center gap-2"
-            >
-              <Save className="w-4 h-4" />
-              Lagre alle endringer
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+          </Text>
+          <View style={styles.footerActions}>
+            <TouchableOpacity onPress={onClose} style={[styles.secondaryButton, { backgroundColor: colors.background, borderColor: colors.border }]}>
+              <Text style={[styles.secondaryButtonText, { color: colors.text }]}>Avbryt</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleSaveAll} style={[styles.primaryButton, { backgroundColor: colors.primary }]}>
+              <Text style={styles.primaryButtonText}>💾 Lagre alle</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderBottomWidth: 1,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  headerIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerIconText: {
+    fontSize: 20,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  headerSubtitle: {
+    fontSize: 13,
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeButtonText: {
+    fontSize: 24,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 16,
+  },
+  addButton: {
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  addButtonIcon: {
+    fontSize: 20,
+  },
+  addButtonText: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  formContainer: {
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 2,
+  },
+  formTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
+    marginTop: 8,
+  },
+  typeSelector: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 8,
+  },
+  typeButton: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+  },
+  typeButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  input: {
+    borderRadius: 12,
+    padding: 12,
+    fontSize: 15,
+    borderWidth: 1,
+    marginBottom: 8,
+  },
+  textArea: {
+    borderRadius: 12,
+    padding: 12,
+    fontSize: 15,
+    borderWidth: 1,
+    marginBottom: 8,
+    minHeight: 80,
+    textAlignVertical: 'top',
+  },
+  formActions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 8,
+  },
+  primaryButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  primaryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  secondaryButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+  },
+  secondaryButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  buttonDisabled: {
+    opacity: 0.5,
+  },
+  itemCard: {
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+  },
+  itemHeader: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 12,
+  },
+  itemIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  itemIcon: {
+    fontSize: 24,
+  },
+  itemContent: {
+    flex: 1,
+  },
+  itemTitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+    gap: 8,
+  },
+  itemTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    flex: 1,
+  },
+  typeBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  typeBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  itemDescription: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 8,
+  },
+  itemFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  groupBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  groupDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  groupText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  dateText: {
+    fontSize: 12,
+  },
+  itemActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  actionButton: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  actionButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  editActions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 12,
+  },
+  footer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderTopWidth: 1,
+  },
+  footerText: {
+    fontSize: 14,
+  },
+  footerActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+});
