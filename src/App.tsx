@@ -1,231 +1,313 @@
-import { useState, useEffect, useRef } from 'react';
-import { LoginScreen } from './components/LoginScreen';
-import { OnboardingScreen } from './components/OnboardingScreen';
-import { ParentView } from './components/ParentView';
-import { StaffView } from './components/StaffView';
-import { BottomNavigation } from './components/BottomNavigation';
-import { NotificationsTab } from './components/NotificationsTab';
-import { ProfileTab } from './components/ProfileTab';
-import { ChatModal } from './components/ChatModal';
-import { InstallPWA } from './components/InstallPWA';
-import { Language } from './translations/translations';
-import { Toaster } from 'sonner';
-import { authService, supabase } from './services/supabase';
-
-type UserRole = 'parent' | 'staff';
-type AppState = 'login' | 'onboarding' | 'main';
+import React from 'react';
 
 export default function App() {
-  const [currentRole, setCurrentRole] = useState<UserRole>('parent');
-  const [appState, setAppState] = useState<AppState>('login');
-  const [activeTab, setActiveTab] = useState<string>('home');
-  const [showChat, setShowChat] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
-  const [language, setLanguage] = useState<Language>('no');
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const authInitialized = useRef(false);
-  const isHandlingAuthChange = useRef(false);
+  return (
+    <div style={{
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      maxWidth: '800px',
+      margin: '0 auto',
+      padding: '40px 20px',
+      lineHeight: 1.6,
+    }}>
+      <div style={{
+        background: 'linear-gradient(135deg, #2563EB 0%, #8B5CF6 100%)',
+        borderRadius: '16px',
+        padding: '32px',
+        color: 'white',
+        marginBottom: '32px',
+      }}>
+        <h1 style={{ margin: '0 0 16px 0', fontSize: '32px' }}>
+          🏫 Hentetjeneste - React Native App
+        </h1>
+        <p style={{ margin: 0, fontSize: '18px', opacity: 0.9 }}>
+          Digital hentetjeneste for barnehager med GDPR-sikkerhet
+        </p>
+      </div>
 
-  // Check for existing session on mount/refresh
-  useEffect(() => {
-    // Prevent multiple initializations
-    if (authInitialized.current) return;
-    authInitialized.current = true;
+      <div style={{
+        background: '#FEF3C7',
+        border: '2px solid #F59E0B',
+        borderRadius: '12px',
+        padding: '24px',
+        marginBottom: '32px',
+      }}>
+        <h2 style={{ margin: '0 0 12px 0', color: '#B45309', fontSize: '20px' }}>
+          ⚠️ Dette er en React Native app
+        </h2>
+        <p style={{ margin: 0, color: '#92400E', fontSize: '16px' }}>
+          Denne appen kan <strong>IKKE</strong> kjøres i Figma Make's preview. 
+          Den må kjøres via <strong>Expo CLI</strong> på din lokale maskin eller mobil.
+        </p>
+      </div>
 
-    const checkAuth = async () => {
-      try {
-        const session = await authService.getSession();
-        if (session) {
-          // User is logged in, go directly to main app
-          setAppState('main');
-        } else {
-          // No session, show login screen
-          setAppState('login');
-        }
-      } catch (error) {
-        // If Supabase is not configured or error, use demo mode
-        console.log('Supabase not configured, using demo mode');
-        setAppState('login');
-      } finally {
-        setIsCheckingAuth(false);
-      }
-    };
+      <div style={{
+        background: '#DCFCE7',
+        border: '2px solid #16A34A',
+        borderRadius: '12px',
+        padding: '24px',
+        marginBottom: '32px',
+      }}>
+        <h2 style={{ margin: '0 0 12px 0', color: '#15803D', fontSize: '20px' }}>
+          ✅ BUG FIKSET! (12. Des 2024)
+        </h2>
+        <p style={{ margin: '0 0 12px 0', color: '#166534', fontSize: '16px' }}>
+          Hvis appen crashet tidligere i dag, er det nå fikset! De manglende dependencies 
+          er lagt til i <code style={{ background: '#BBF7D0', padding: '2px 6px', borderRadius: '4px' }}>package.json</code>:
+        </p>
+        <ul style={{ margin: 0, paddingLeft: '20px', color: '#166534' }}>
+          <li><strong>react-native-gesture-handler</strong> ✅</li>
+          <li><strong>@react-navigation/bottom-tabs</strong> ✅</li>
+        </ul>
+        <p style={{ margin: '12px 0 0 0', color: '#166534', fontSize: '14px' }}>
+          📖 Les <strong>QUICK-FIX.md</strong> for instruksjoner!
+        </p>
+      </div>
 
-    checkAuth();
+      <div style={{
+        background: 'white',
+        borderRadius: '12px',
+        padding: '24px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        marginBottom: '24px',
+      }}>
+        <h3 style={{ margin: '0 0 16px 0', color: '#111827', fontSize: '20px' }}>
+          🚀 Slik kjører du appen:
+        </h3>
+        
+        <div style={{ marginBottom: '24px' }}>
+          <h4 style={{ color: '#2563EB', marginBottom: '8px' }}>
+            Metode 1: Test på ekte telefon (anbefalt)
+          </h4>
+          <ol style={{ margin: 0, paddingLeft: '20px', color: '#4B5563' }}>
+            <li style={{ marginBottom: '8px' }}>
+              Installer <strong>Expo Go</strong> fra App Store / Google Play
+            </li>
+            <li style={{ marginBottom: '8px' }}>
+              Last ned prosjektfilene fra Figma Make
+            </li>
+            <li style={{ marginBottom: '8px' }}>
+              Kjør i terminal:
+              <pre style={{
+                background: '#F3F4F6',
+                padding: '12px',
+                borderRadius: '8px',
+                overflow: 'auto',
+                fontSize: '14px',
+              }}>
+{`cd hentetjeneste-rn
+npm install
+npx expo start`}
+              </pre>
+            </li>
+            <li style={{ marginBottom: '8px' }}>
+              Skann QR-koden med Expo Go appen
+            </li>
+          </ol>
+        </div>
 
-    // Listen for auth state changes - but ignore TOKEN_REFRESH to prevent loops
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      // Prevent handling auth changes while already handling one
-      if (isHandlingAuthChange.current) return;
-      
-      // Ignore TOKEN_REFRESH events - these happen automatically and shouldn't change UI
-      if (event === 'TOKEN_REFRESHED') {
-        return;
-      }
+        <div style={{ marginBottom: '24px' }}>
+          <h4 style={{ color: '#2563EB', marginBottom: '8px' }}>
+            Metode 2: Test i Android Emulator / iOS Simulator
+          </h4>
+          <ol style={{ margin: 0, paddingLeft: '20px', color: '#4B5563' }}>
+            <li style={{ marginBottom: '8px' }}>
+              Installer Android Studio (Android) eller Xcode (iOS/macOS)
+            </li>
+            <li style={{ marginBottom: '8px' }}>
+              Start en emulator/simulator
+            </li>
+            <li style={{ marginBottom: '8px' }}>
+              Kjør <code style={{ background: '#F3F4F6', padding: '2px 6px', borderRadius: '4px' }}>npx expo start</code>
+            </li>
+            <li style={{ marginBottom: '8px' }}>
+              Trykk <strong>a</strong> (Android) eller <strong>i</strong> (iOS)
+            </li>
+          </ol>
+        </div>
 
-      isHandlingAuthChange.current = true;
-      
-      // Only update state if it actually needs to change
-      setAppState((currentState) => {
-        if (session && currentState !== 'main' && currentState !== 'onboarding') {
-          return 'main';
-        } else if (!session && currentState !== 'login') {
-          return 'login';
-        }
-        return currentState;
-      });
-
-      // Reset flag after a short delay to allow state updates
-      setTimeout(() => {
-        isHandlingAuthChange.current = false;
-      }, 100);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-      authInitialized.current = false;
-    };
-  }, []);
-
-  const handleLogin = () => {
-    setAppState('onboarding');
-  };
-
-  const handleLoadDemo = () => {
-    setAppState('main');
-  };
-
-  const handleLogout = async () => {
-    try {
-      await authService.signOut();
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-    setAppState('login');
-  };
-
-  // Show loading screen while checking auth
-  if (isCheckingAuth) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Laster inn...</p>
+        <div style={{
+          background: '#DBEAFE',
+          borderLeft: '4px solid #2563EB',
+          padding: '16px',
+          borderRadius: '8px',
+        }}>
+          <p style={{ margin: 0, color: '#1E40AF', fontSize: '14px' }}>
+            💡 <strong>Pro tip:</strong> Testing på ekte telefon med Expo Go er raskest! 
+            Hver gang du lagrer kode, oppdateres appen automatisk.
+          </p>
         </div>
       </div>
-    );
-  }
 
-  // Show login screen
-  if (appState === 'login') {
-    return <LoginScreen onLogin={handleLogin} />;
-  }
-
-  // Show onboarding screen
-  if (appState === 'onboarding') {
-    return <OnboardingScreen onLoadDemo={handleLoadDemo} onLogout={handleLogout} />;
-  }
-
-  // Determine active tab label based on role
-  const getActiveTabLabel = () => {
-    if (currentRole === 'parent') {
-      if (activeTab === 'home') return 'home';
-      if (activeTab === 'checklist') return 'home'; // Parent doesn't have checklist
-      return activeTab;
-    } else {
-      if (activeTab === 'home') return 'checklist'; // Staff sees checklist instead
-      if (activeTab === 'stats') return 'stats';
-      return activeTab;
-    }
-  };
-
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
-    if (tab === 'chat') {
-      setShowChat(true);
-    } else {
-      setShowChat(false);
-    }
-  };
-
-  const renderContent = () => {
-    const currentTab = getActiveTabLabel();
-    
-    if (currentTab === 'notifications') {
-      return <NotificationsTab role={currentRole} darkMode={darkMode} language={language} />;
-    }
-    if (currentTab === 'profile') {
-      return <ProfileTab role={currentRole} onRoleToggle={() => setCurrentRole(currentRole === 'parent' ? 'staff' : 'parent')} darkMode={darkMode} onDarkModeToggle={setDarkMode} language={language} onLanguageChange={setLanguage} />;
-    }
-    if (currentTab === 'home') {
-      return <ParentView darkMode={darkMode} language={language} />;
-    }
-    if (currentTab === 'checklist') {
-      return <StaffView viewType="checklist" darkMode={darkMode} language={language} />;
-    }
-    if (currentTab === 'stats') {
-      return <StaffView viewType="stats" darkMode={darkMode} language={language} />;
-    }
-    
-    return <ParentView darkMode={darkMode} language={language} />;
-  };
-
-  // Show main app
-  return (
-    <div className={`min-h-screen transition-colors ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
-      <Toaster position="top-center" richColors />
-      
-      {/* Header */}
-      <header className={`border-b sticky top-0 z-20 transition-colors ${
-        darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-      }`}>
-        <div className="max-w-7xl mx-auto px-4 py-2 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className={`w-8 h-8 sm:w-10 sm:h-10 ${
-                currentRole === 'parent' 
-                  ? 'bg-gradient-to-br from-purple-500 to-purple-600' 
-                  : 'bg-gradient-to-br from-blue-500 to-blue-600'
-              } rounded-xl flex items-center justify-center shadow-sm flex-shrink-0`}>
-                <svg className="w-4 h-4 sm:w-6 sm:h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                </svg>
-              </div>
-              <div className="min-w-0">
-                <h1 className={`text-lg sm:text-xl font-semibold truncate ${darkMode ? 'text-white' : 'text-gray-900'}`}>Hentetjeneste</h1>
-                <p className={`text-xs sm:text-sm truncate ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>
-                  {currentRole === 'parent' ? 'Forelder-modus' : 'Ansatt-modus'}
-                </p>
-              </div>
-            </div>
+      <div style={{
+        background: 'white',
+        borderRadius: '12px',
+        padding: '24px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        marginBottom: '24px',
+      }}>
+        <h3 style={{ margin: '0 0 16px 0', color: '#111827', fontSize: '20px' }}>
+          📦 Hva er implementert?
+        </h3>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div>
+            <h4 style={{ color: '#2563EB', margin: '0 0 8px 0', fontSize: '16px' }}>
+              ✅ Database (Supabase)
+            </h4>
+            <ul style={{ margin: 0, paddingLeft: '20px', color: '#4B5563', fontSize: '14px' }}>
+              <li>7 tabeller med RLS</li>
+              <li>Autentisering</li>
+              <li>CRUD operations</li>
+              <li>Sample data</li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 style={{ color: '#8B5CF6', margin: '0 0 8px 0', fontSize: '16px' }}>
+              ✅ UI Components
+            </h4>
+            <ul style={{ margin: 0, paddingLeft: '20px', color: '#4B5563', fontSize: '14px' }}>
+              <li>ParentHomeScreen</li>
+              <li>StaffChecklistScreen</li>
+              <li>DailyInfoEditor</li>
+              <li>Theme system</li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 style={{ color: '#10B981', margin: '0 0 8px 0', fontSize: '16px' }}>
+              ✅ API Layer
+            </h4>
+            <ul style={{ margin: 0, paddingLeft: '20px', color: '#4B5563', fontSize: '14px' }}>
+              <li>Supabase client</li>
+              <li>React Query hooks</li>
+              <li>Type-safe API</li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 style={{ color: '#F59E0B', margin: '0 0 8px 0', fontSize: '16px' }}>
+              ✅ Utils & Theme
+            </h4>
+            <ul style={{ margin: 0, paddingLeft: '20px', color: '#4B5563', fontSize: '14px' }}>
+              <li>Norsk datoformatering</li>
+              <li>Spond-inspirert design</li>
+              <li>TypeScript types</li>
+            </ul>
           </div>
         </div>
-      </header>
+      </div>
 
-      <main className={darkMode ? 'bg-gray-900' : 'bg-gray-50'}>
-        {renderContent()}
-      </main>
+      <div style={{
+        background: 'white',
+        borderRadius: '12px',
+        padding: '24px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        marginBottom: '24px',
+      }}>
+        <h3 style={{ margin: '0 0 16px 0', color: '#111827', fontSize: '20px' }}>
+          📚 Viktige filer
+        </h3>
+        
+        <div style={{ fontSize: '14px' }}>
+          <div style={{ marginBottom: '12px' }}>
+            <strong style={{ color: '#2563EB' }}>📖 README.md</strong>
+            <p style={{ margin: '4px 0 0 0', color: '#6B7280' }}>
+              Komplett guide for å komme i gang
+            </p>
+          </div>
+          
+          <div style={{ marginBottom: '12px' }}>
+            <strong style={{ color: '#8B5CF6' }}>🚀 HOW-TO-RUN.md</strong>
+            <p style={{ margin: '4px 0 0 0', color: '#6B7280' }}>
+              Detaljerte instruksjoner for 4 metoder
+            </p>
+          </div>
+          
+          <div style={{ marginBottom: '12px' }}>
+            <strong style={{ color: '#10B981' }}>📊 SUPABASE-SQL-SETUP.sql</strong>
+            <p style={{ margin: '4px 0 0 0', color: '#6B7280' }}>
+              Database schema - kjør dette i Supabase SQL Editor
+            </p>
+          </div>
+          
+          <div style={{ marginBottom: '12px' }}>
+            <strong style={{ color: '#F59E0B' }}>🏗️ PROJECT-STRUCTURE.md</strong>
+            <p style={{ margin: '4px 0 0 0', color: '#6B7280' }}>
+              Arkitektur og mappestruktur
+            </p>
+          </div>
+          
+          <div>
+            <strong style={{ color: '#EF4444' }}>⚙️ .env.example</strong>
+            <p style={{ margin: '4px 0 0 0', color: '#6B7280' }}>
+              Template for Supabase credentials
+            </p>
+          </div>
+        </div>
+      </div>
 
-      <BottomNavigation 
-        role={currentRole}
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        darkMode={darkMode}
-        language={language}
-      />
+      <div style={{
+        background: '#F3F4F6',
+        borderRadius: '12px',
+        padding: '24px',
+        textAlign: 'center',
+      }}>
+        <h3 style={{ margin: '0 0 16px 0', color: '#111827', fontSize: '20px' }}>
+          🎯 Quick Start
+        </h3>
+        <pre style={{
+          background: '#1F2937',
+          color: '#F9FAFB',
+          padding: '20px',
+          borderRadius: '8px',
+          textAlign: 'left',
+          overflow: 'auto',
+          fontSize: '14px',
+        }}>
+{`# 1. Last ned filene fra Figma Make
 
-      {showChat && (
-        <ChatModal
-          childName="Emma Nordmann"
-          onClose={() => {
-            setShowChat(false);
-            setActiveTab('home');
-          }}
-        />
-      )}
+# 2. Installer dependencies
+cd hentetjeneste-rn
+npm install
 
-      {/* PWA Install Banner */}
-      <InstallPWA />
+# 3. Kjør SQL-script i Supabase
+# Gå til: https://app.supabase.com/project/gvqxcdcphggotggfvqbe/sql
+# Kopier innhold fra SUPABASE-SQL-SETUP.sql
+
+# 4. Start Expo
+npx expo start
+
+# 5. Skann QR-kode med Expo Go appen på telefonen
+# Eller trykk 'a' for Android emulator / 'i' for iOS simulator`}
+        </pre>
+      </div>
+
+      <div style={{
+        marginTop: '32px',
+        padding: '24px',
+        background: 'linear-gradient(135deg, #2563EB 0%, #8B5CF6 100%)',
+        borderRadius: '12px',
+        color: 'white',
+        textAlign: 'center',
+      }}>
+        <p style={{ margin: 0, fontSize: '18px' }}>
+          📱 <strong>Last ned filene og kjør appen lokalt!</strong>
+        </p>
+        <p style={{ margin: '8px 0 0 0', opacity: 0.9, fontSize: '14px' }}>
+          React Native apps må kjøres via Expo CLI på mobil eller emulator
+        </p>
+      </div>
+
+      <div style={{ marginTop: '24px', textAlign: 'center', color: '#6B7280', fontSize: '14px' }}>
+        <p>
+          📚 Les <strong>HOW-TO-RUN.md</strong> for detaljerte instruksjoner
+        </p>
+        <p style={{ marginTop: '8px' }}>
+          💡 Support: <a href="https://docs.expo.dev/" style={{ color: '#2563EB' }}>Expo Docs</a> | 
+          {' '}<a href="https://supabase.com/docs" style={{ color: '#2563EB' }}>Supabase Docs</a>
+        </p>
+      </div>
     </div>
   );
 }

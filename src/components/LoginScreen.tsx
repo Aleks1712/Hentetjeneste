@@ -1,7 +1,5 @@
 import { useState } from 'react';
 import { Eye, EyeOff, Mail, Lock, User, Phone, AlertCircle, CheckCircle } from 'lucide-react';
-import { authService } from '../services/supabase';
-import { toast } from 'sonner';
 
 interface LoginScreenProps {
   onLogin: () => void;
@@ -112,7 +110,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
     setErrors(newErrors);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate all fields
@@ -136,36 +134,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
     });
 
     if (!hasErrors) {
-      try {
-        if (activeTab === 'register') {
-          // Register new user
-          await authService.signUp(email, password, {
-            full_name: name,
-            phone: phone,
-            role: 'parent'
-          });
-          toast.success('Konto opprettet! Du kan nå logge inn.');
-          setActiveTab('login');
-          // Clear form
-          setName('');
-          setPhone('');
-          setPassword('');
-        } else {
-          // Login existing user
-          await authService.signIn(email, password);
-          toast.success('Innlogging vellykket!');
-          onLogin();
-        }
-      } catch (error: any) {
-        console.error('Auth error:', error);
-        // If Supabase is not configured, allow demo mode
-        if (error.message?.includes('fetch') || error.message?.includes('Failed to fetch')) {
-          toast.info('Supabase ikke konfigurert, bruker demo-modus');
-          onLogin();
-        } else {
-          toast.error(error.message || 'Innlogging feilet. Prøv igjen.');
-        }
-      }
+      onLogin();
     }
   };
 

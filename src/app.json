@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "Hentetjeneste",
+    "slug": "hentetjeneste",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./public/icon.svg",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./public/apple-touch-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#8B5CF6"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.hentetjeneste.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./public/apple-touch-icon.png",
+        "backgroundColor": "#8B5CF6"
+      },
+      "package": "com.hentetjeneste.app"
+    },
+    "web": {
+      "favicon": "./public/apple-touch-icon.png"
+    },
+    "plugins": [
+      "expo-secure-store"
+    ]
+  }
+}

@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { X, Calendar, UtensilsCrossed, Sparkles, Megaphone, Plus, Edit2, Trash2, Save } from 'lucide-react';
 import { DailyInfo } from '../data/mockData';
-import { dailyInfoService } from '../services/supabase';
-import { toast } from 'sonner';
 
 interface DailyInfoEditorProps {
   info: DailyInfo[];
@@ -79,42 +77,24 @@ export function DailyInfoEditor({ info, onClose, onSave }: DailyInfoEditorProps)
     setItems(items.filter(item => item.id !== itemId));
   };
 
-  const handleAddNew = async () => {
+  const handleAddNew = () => {
     if (newItem.title && newItem.description) {
-      try {
-        // Save to Supabase
-        const created = await dailyInfoService.createDailyInfo({
-          date: newItem.date || new Date().toISOString().split('T')[0],
-          type: newItem.type as 'menu' | 'activity' | 'announcement',
-          title: newItem.title,
-          description: newItem.description,
-          target_group: newItem.targetGroup || null,
-          created_by: ''
-        });
-
-        // Update local state
-        const newDailyInfo: DailyInfo = {
-          id: created.id,
-          type: created.type,
-          title: created.title,
-          description: created.description,
-          date: created.date,
-          targetGroup: created.target_group || undefined,
-        };
-        
-        setItems([...items, newDailyInfo]);
-        setNewItem({
-          type: 'announcement',
-          title: '',
-          description: '',
-          date: new Date().toISOString().split('T')[0],
-        });
-        setShowAddNew(false);
-        toast.success('Info lagt til!');
-      } catch (error) {
-        console.error('Failed to add daily info:', error);
-        toast.error('Kunne ikke legge til info');
-      }
+      const newDailyInfo: DailyInfo = {
+        id: `info-${Date.now()}`,
+        type: newItem.type as 'menu' | 'activity' | 'announcement',
+        title: newItem.title,
+        description: newItem.description,
+        date: newItem.date || new Date().toISOString().split('T')[0],
+        targetGroup: newItem.targetGroup,
+      };
+      setItems([...items, newDailyInfo]);
+      setNewItem({
+        type: 'announcement',
+        title: '',
+        description: '',
+        date: new Date().toISOString().split('T')[0],
+      });
+      setShowAddNew(false);
     }
   };
 

@@ -1,14 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { ChildCard } from './ChildCard';
 import { IncidentReport } from './IncidentReport';
 import { DailyInfoEditor } from './DailyInfoEditor';
+import { StatsView } from './StatsView';
 import { ChildSelector } from './ChildSelector';
 import { StaffChatModal } from './StaffChatModal';
-import { Plus, Calendar, Users, CheckCircle, BarChart3, Clock, UserCheck, TrendingUp, MessageCircle } from 'lucide-react';
-import type { Language } from '../translations/translations';
-import { childrenService, attendanceService, dailyInfoService } from '../services/supabase';
-import type { Child, DailyInfo } from '../data/mockData';
 import { mockChildren, mockDailyInfo } from '../data/mockData';
-import { toast } from 'sonner';
+import { Plus, Calendar, Users, CheckCircle, BarChart3, Clock, UserCheck, TrendingUp, MessageCircle } from 'lucide-react';
+import { Language, useTranslation } from '../translations/translations';
 
 type Tab = 'all' | 'present' | 'absent';
 
@@ -18,173 +17,56 @@ interface StaffViewProps {
   language?: Language;
 }
 
-export function StaffView({ viewType, darkMode: _darkMode = false, language: _language = 'no' }: StaffViewProps) {
+export function StaffView({ viewType, darkMode = false, language = 'no' }: StaffViewProps) {
+  const t = useTranslation(language);
   const [activeTab, setActiveTab] = useState<Tab>('all');
-  const [_selectedChildId, _setSelectedChildId] = useState<string | null>(null);
-  const [_showMenu, _setShowMenu] = useState(false);
+  const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
+  const [showMenu, setShowMenu] = useState(false);
   const [showIncidentReport, setShowIncidentReport] = useState(false);
   const [showDailyInfoEditor, setShowDailyInfoEditor] = useState(false);
   const [incidentChildId, setIncidentChildId] = useState<string | null>(null);
   const [showChildSelector, setShowChildSelector] = useState(false);
   const [showChat, setShowChat] = useState(false);
-  const [loading, setLoading] = useState(true);
   
-  // Supabase data
-  const [allChildren, setAllChildren] = useState<Child[]>([]);
-  const [dailyInfo, setDailyInfo] = useState<DailyInfo[]>([]);
-  
-  // Track children status locally
-  const [childrenStatus, setChildrenStatus] = useState<{ 
-    [key: string]: { status: 'present' | 'home'; checkInTime?: string; checkOutTime?: string } 
-  }>({});
-
-  // Load data from Supabase with fallback to mock data
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        // Try to get data from Supabase
-        try {
-          // Get all children (staff can see all)
-          const children = await childrenService.getChildren();
-          const mappedChildren: Child[] = children.map(c => ({
-            id: c.id,
-            name: c.name,
-            status: c.status === 'present' ? 'present' : 'home',
-            group: c.group || '',
-            checkInTime: c.check_in_time || undefined,
-            checkOutTime: c.check_out_time || undefined,
-            notes: c.notes || undefined,
-            allergies: c.allergies || undefined,
-            pickupStatus: null,
-          }));
-          
-          if (mappedChildren.length > 0) {
-            setAllChildren(mappedChildren);
-
-            // Initialize status map
-            const statusMap: { [key: string]: { status: 'present' | 'home'; checkInTime?: string; checkOutTime?: string } } = {};
-            mappedChildren.forEach(child => {
-              statusMap[child.id] = {
-                status: child.status,
-                checkInTime: child.checkInTime,
-                checkOutTime: child.checkOutTime
-              };
-            });
-            setChildrenStatus(statusMap);
-          } else {
-            throw new Error('No children found');
-          }
-
-          // Get daily info
-          const info = await dailyInfoService.getDailyInfo();
-          const mappedInfo: DailyInfo[] = info.map(i => ({
-            id: i.id,
-            type: i.type,
-            title: i.title,
-            description: i.description,
-            date: i.date,
-            targetGroup: i.target_group || undefined,
-          }));
-          setDailyInfo(mappedInfo);
-        } catch (supabaseError) {
-          // Fallback to mock data
-          console.log('Using mock data (Supabase not available)');
-          setAllChildren(mockChildren);
-          
-          // Initialize status map from mock data
-          const statusMap: { [key: string]: { status: 'present' | 'home'; checkInTime?: string; checkOutTime?: string } } = {};
-          mockChildren.forEach(child => {
-            statusMap[child.id] = {
-              status: child.status,
-              checkInTime: child.checkInTime,
-              checkOutTime: child.checkOutTime
-            };
-          });
-          setChildrenStatus(statusMap);
-          
-          setDailyInfo(mockDailyInfo);
-        }
-
-        setLoading(false);
-      } catch (error) {
-        console.error('Failed to load data:', error);
-        // Final fallback to mock data
-        setAllChildren(mockChildren);
-        
-        const statusMap: { [key: string]: { status: 'present' | 'home'; checkInTime?: string; checkOutTime?: string } } = {};
-        mockChildren.forEach(child => {
-          statusMap[child.id] = {
-            status: child.status,
-            checkInTime: child.checkInTime,
-            checkOutTime: child.checkOutTime
-          };
-        });
-        setChildrenStatus(statusMap);
-        
-        setDailyInfo(mockDailyInfo);
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, []);
+  // Add state to track children status
+  const [childrenStatus, setChildrenStatus] = useState(() => {
+    const statusMap: { [key: string]: { status: 'present' | 'home'; checkInTime?: string; checkOutTime?: string } } = {};
+    mockChildren.forEach(child => {
+      statusMap[child.id] = {
+        status: child.status,
+        checkInTime: child.checkInTime,
+        checkOutTime: child.checkOutTime
+      };
+    });
+    return statusMap;
+  });
   
   // Function to check in a child
-  const handleCheckIn = async (childId: string) => {
-    try {
-      const now = new Date();
-      const timeString = now.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
-      
-      // Try Supabase first, but continue even if it fails (demo mode)
-      try {
-        await attendanceService.checkIn(childId, 'staff-user-id');
-      } catch (supabaseError) {
-        console.log('Supabase not available, using local state only');
+  const handleCheckIn = (childId: string) => {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
+    setChildrenStatus(prev => ({
+      ...prev,
+      [childId]: {
+        status: 'present',
+        checkInTime: timeString,
+        checkOutTime: undefined
       }
-      
-      setChildrenStatus(prev => ({
-        ...prev,
-        [childId]: {
-          status: 'present',
-          checkInTime: timeString,
-          checkOutTime: undefined
-        }
-      }));
-      
-      toast.success('Barn innsjekket');
-    } catch (error) {
-      console.error('Failed to check in:', error);
-      toast.error('Kunne ikke sjekke inn');
-    }
+    }));
   };
   
   // Function to check out a child
-  const handleCheckOut = async (childId: string) => {
-    try {
-      const now = new Date();
-      const timeString = now.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
-      
-      // Try Supabase first, but continue even if it fails (demo mode)
-      try {
-        await attendanceService.checkOut(childId, 'staff-user-id');
-      } catch (supabaseError) {
-        console.log('Supabase not available, using local state only');
+  const handleCheckOut = (childId: string) => {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
+    setChildrenStatus(prev => ({
+      ...prev,
+      [childId]: {
+        status: 'home',
+        checkInTime: prev[childId]?.checkInTime,
+        checkOutTime: timeString
       }
-      
-      setChildrenStatus(prev => ({
-        ...prev,
-        [childId]: {
-          status: 'home',
-          checkInTime: prev[childId]?.checkInTime,
-          checkOutTime: timeString
-        }
-      }));
-      
-      toast.success('Barn utsjekket');
-    } catch (error) {
-      console.error('Failed to check out:', error);
-      toast.error('Kunne ikke sjekke ut');
-    }
+    }));
   };
   
   // Get child with updated status
@@ -194,18 +76,9 @@ export function StaffView({ viewType, darkMode: _darkMode = false, language: _la
   
   // Calculate current present count
   const presentCount = Object.values(childrenStatus).filter(status => status.status === 'present').length;
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Laster inn...</p>
-        </div>
-      </div>
-    );
-  }
-  const incidentChild = allChildren.find(c => c.id === incidentChildId);
+  
+  const selectedChild = mockChildren.find(c => c.id === selectedChildId);
+  const incidentChild = mockChildren.find(c => c.id === incidentChildId);
 
   const handleIncidentSubmit = (incident: any) => {
     // Handle incident submission
@@ -258,7 +131,7 @@ export function StaffView({ viewType, darkMode: _darkMode = false, language: _la
                   <Users className="w-5 h-5 text-blue-600" />
                 </div>
                 <div className="text-right">
-                  <p className="text-4xl text-blue-600">{allChildren.length}</p>
+                  <p className="text-4xl text-blue-600">{mockChildren.length}</p>
                   <p className="text-sm text-gray-600 mt-1">Barn totalt</p>
                 </div>
               </div>
@@ -271,15 +144,15 @@ export function StaffView({ viewType, darkMode: _darkMode = false, language: _la
                   <CheckCircle className="w-5 h-5 text-green-600" />
                 </div>
                 <div className="text-right">
-                  <p className="text-4xl text-green-600">{allChildren.filter(c => c.status === 'present').length}</p>
+                  <p className="text-4xl text-green-600">{mockChildren.filter(c => c.status === 'present').length}</p>
                   <p className="text-sm text-gray-600 mt-1">Til stede</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 <div className="flex-1 bg-gray-100 rounded-full h-2">
-                  <div className="bg-green-500 rounded-full h-2" style={{ width: `${(allChildren.filter(c => c.status === 'present').length / allChildren.length) * 100}%` }}></div>
+                  <div className="bg-green-500 rounded-full h-2" style={{ width: `${(mockChildren.filter(c => c.status === 'present').length / mockChildren.length) * 100}%` }}></div>
                 </div>
-                <span className="text-xs">{Math.round((allChildren.filter(c => c.status === 'present').length / allChildren.length) * 100)}%</span>
+                <span className="text-xs">{Math.round((mockChildren.filter(c => c.status === 'present').length / mockChildren.length) * 100)}%</span>
               </div>
             </div>
 
@@ -290,12 +163,12 @@ export function StaffView({ viewType, darkMode: _darkMode = false, language: _la
                   <Clock className="w-5 h-5 text-orange-600" />
                 </div>
                 <div className="text-right">
-                  <p className="text-4xl text-orange-600">{allChildren.filter(c => c.pickupStatus === 'pending').length}</p>
+                  <p className="text-4xl text-orange-600">{mockChildren.filter(c => c.pickupStatus === 'pending').length}</p>
                   <p className="text-sm text-gray-600 mt-1">Ventende</p>
                 </div>
               </div>
               <p className="text-sm text-gray-500">
-                {allChildren.filter(c => c.pickupStatus === 'pending').length > 0 ? 'Trenger godkjenning' : 'Ingen ventende'}
+                {mockChildren.filter(c => c.pickupStatus === 'pending').length > 0 ? 'Trenger godkjenning' : 'Ingen ventende'}
               </p>
             </div>
 
@@ -306,7 +179,7 @@ export function StaffView({ viewType, darkMode: _darkMode = false, language: _la
                   <UserCheck className="w-5 h-5 text-purple-600" />
                 </div>
                 <div className="text-right">
-                  <p className="text-4xl text-purple-600">{allChildren.filter(c => c.pickupStatus === 'approved').length}</p>
+                  <p className="text-4xl text-purple-600">{mockChildren.filter(c => c.pickupStatus === 'approved').length}</p>
                   <p className="text-sm text-gray-600 mt-1">Godkjente i dag</p>
                 </div>
               </div>
@@ -321,14 +194,14 @@ export function StaffView({ viewType, darkMode: _darkMode = false, language: _la
               <h3 className="text-gray-900">Ukeoversikt</h3>
             </div>
             <div className="space-y-4">
-              {['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag'].map((day) => {
+              {['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag'].map((day, index) => {
                 const attendance = Math.floor(Math.random() * 5) + 11;
-                const percentage = (attendance / allChildren.length) * 100;
+                const percentage = (attendance / mockChildren.length) * 100;
                 return (
                   <div key={day}>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm text-gray-700">{day}</span>
-                      <span className="text-sm text-gray-900">{attendance}/{allChildren.length}</span>
+                      <span className="text-sm text-gray-900">{attendance}/{mockChildren.length}</span>
                     </div>
                     <div className="w-full bg-gray-100 rounded-full h-2">
                       <div 
@@ -430,7 +303,7 @@ export function StaffView({ viewType, darkMode: _darkMode = false, language: _la
           {/* Daily Info Editor Modal */}
           {showDailyInfoEditor && (
             <DailyInfoEditor
-              info={dailyInfo}
+              info={mockDailyInfo}
               onClose={() => setShowDailyInfoEditor(false)}
               onSave={(updatedInfo) => {
                 // Save updated daily info
@@ -449,7 +322,7 @@ export function StaffView({ viewType, darkMode: _darkMode = false, language: _la
                   <Users className="w-5 h-5 text-blue-600" />
                 </div>
                 <div className="text-right">
-                  <p className="text-4xl text-blue-600">{allChildren.length}</p>
+                  <p className="text-4xl text-blue-600">{mockChildren.length}</p>
                   <p className="text-sm text-gray-600 mt-1">Barn totalt</p>
                 </div>
               </div>
@@ -468,9 +341,9 @@ export function StaffView({ viewType, darkMode: _darkMode = false, language: _la
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 <div className="flex-1 bg-gray-100 rounded-full h-2">
-                  <div className="bg-green-500 rounded-full h-2" style={{ width: `${(presentCount / allChildren.length) * 100}%` }}></div>
+                  <div className="bg-green-500 rounded-full h-2" style={{ width: `${(presentCount / mockChildren.length) * 100}%` }}></div>
                 </div>
-                <span className="text-xs">{Math.round((presentCount / allChildren.length) * 100)}%</span>
+                <span className="text-xs">{Math.round((presentCount / mockChildren.length) * 100)}%</span>
               </div>
             </div>
 
@@ -481,12 +354,12 @@ export function StaffView({ viewType, darkMode: _darkMode = false, language: _la
                   <Clock className="w-5 h-5 text-orange-600" />
                 </div>
                 <div className="text-right">
-                  <p className="text-4xl text-orange-600">{allChildren.filter(c => c.pickupStatus === 'pending').length}</p>
+                  <p className="text-4xl text-orange-600">{mockChildren.filter(c => c.pickupStatus === 'pending').length}</p>
                   <p className="text-sm text-gray-600 mt-1">Ventende</p>
                 </div>
               </div>
               <p className="text-sm text-gray-500">
-                {allChildren.filter(c => c.pickupStatus === 'pending').length > 0 ? 'Trenger godkjenning' : 'Ingen ventende'}
+                {mockChildren.filter(c => c.pickupStatus === 'pending').length > 0 ? 'Trenger godkjenning' : 'Ingen ventende'}
               </p>
             </div>
 
@@ -497,7 +370,7 @@ export function StaffView({ viewType, darkMode: _darkMode = false, language: _la
                   <UserCheck className="w-5 h-5 text-purple-600" />
                 </div>
                 <div className="text-right">
-                  <p className="text-4xl text-purple-600">{allChildren.filter(c => c.pickupStatus === 'approved').length}</p>
+                  <p className="text-4xl text-purple-600">{mockChildren.filter(c => c.pickupStatus === 'approved').length}</p>
                   <p className="text-sm text-gray-600 mt-1">Godkjente i dag</p>
                 </div>
               </div>
@@ -553,7 +426,7 @@ export function StaffView({ viewType, darkMode: _darkMode = false, language: _la
               <div className="flex items-center gap-4">
                 <p className="text-6xl text-blue-600">{presentCount}</p>
                 <div>
-                  <p className="text-gray-900">av {allChildren.length} barn til stede</p>
+                  <p className="text-gray-900">av {mockChildren.length} barn til stede</p>
                   <p className="text-sm text-gray-500 mt-1">Oppdatert nå nettopp</p>
                 </div>
                 <div className="ml-auto">
@@ -581,7 +454,7 @@ export function StaffView({ viewType, darkMode: _darkMode = false, language: _la
               {/* Children List - Grid Layout for "all" tab */}
               {activeTab === 'all' ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {allChildren.map(child => {
+                  {mockChildren.map(child => {
                     const childStatus = getChildStatus(child.id);
                     return (
                       <div
@@ -631,7 +504,7 @@ export function StaffView({ viewType, darkMode: _darkMode = false, language: _la
               ) : (
                 /* Other tabs keep list layout */
                 <div className="space-y-2">
-                  {allChildren.filter(child => {
+                  {mockChildren.filter(child => {
                     const childStatus = getChildStatus(child.id);
                     if (activeTab === 'present') return childStatus.status === 'present';
                     if (activeTab === 'absent') return childStatus.status !== 'present';
@@ -689,7 +562,7 @@ export function StaffView({ viewType, darkMode: _darkMode = false, language: _la
                 </div>
               )}
 
-              {allChildren.filter(child => {
+              {mockChildren.filter(child => {
                 const childStatus = getChildStatus(child.id);
                 if (activeTab === 'present') return childStatus.status === 'present';
                 if (activeTab === 'absent') return childStatus.status !== 'present';
@@ -706,7 +579,7 @@ export function StaffView({ viewType, darkMode: _darkMode = false, language: _la
           {/* Child Selector Modal */}
           {showChildSelector && (
             <ChildSelector
-              children={allChildren}
+              children={mockChildren}
               onSelect={(childId) => {
                 setIncidentChildId(childId);
                 setShowIncidentReport(true);

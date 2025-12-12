@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Calendar, History, FileText } from 'lucide-react';
 import { ChildCard } from './ChildCard';
 import { ApprovedPersons } from './ApprovedPersons';
@@ -6,199 +6,49 @@ import { IncidentList } from './IncidentList';
 import { PickupLogView } from './PickupLogView';
 import { DailyInfoView } from './DailyInfoView';
 import { WeeklyPlan } from './WeeklyPlan';
-import type { Language } from '../translations/translations';
-import { childrenService, incidentsService, attendanceService, dailyInfoService, approvedPersonsService, authService } from '../services/supabase';
-import type { Child, Incident, DailyInfo, PickupLog } from '../data/mockData';
-import { mockChildren, mockIncidents, mockDailyInfo, mockPickupLogs, mockApprovedPersons } from '../data/mockData';
+import { mockChildren, mockApprovedPersons, mockIncidents, mockPickupLogs, mockDailyInfo } from '../data/mockData';
+import { Language, useTranslation } from '../translations/translations';
 
 interface ParentViewProps {
   darkMode?: boolean;
   language?: Language;
 }
 
-export function ParentView({ darkMode: _darkMode = false, language: _language = 'no' }: ParentViewProps) {
-  const [selectedChildId, setSelectedChildId] = useState<string>('');
+export function ParentView({ darkMode = false, language = 'no' }: ParentViewProps) {
+  const [selectedChildId, setSelectedChildId] = useState<string>('child-1');
   const [showPickupRequest, setShowPickupRequest] = useState(false);
   const [showPickupForm, setShowPickupForm] = useState(false);
-  const [_selectedPickupPerson, _setSelectedPickupPerson] = useState('');
-  const [_showChat, _setShowChat] = useState(false);
+  const [selectedPickupPerson, setSelectedPickupPerson] = useState('');
+  const [showChat, setShowChat] = useState(false);
   const [requiresApproval, setRequiresApproval] = useState(false);
   const [activeSubTab, setActiveSubTab] = useState<'overview' | 'pickup' | 'activities'>('overview');
   
-  // Supabase data
-  const [myChildren, setMyChildren] = useState<Child[]>([]);
-  const [childIncidents, setChildIncidents] = useState<Incident[]>([]);
-  const [pickupLogs, setPickupLogs] = useState<PickupLog[]>([]);
-  const [dailyInfo, setDailyInfo] = useState<DailyInfo[]>([]);
-  const [approvedPersons, setApprovedPersons] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  
   // Track pickup status for each child
-  const [_childPickupStatus, setChildPickupStatus] = useState<{
+  const [childPickupStatus, setChildPickupStatus] = useState<{
     [key: string]: { status: 'pending' | 'approved' | null; person?: string }
-  }>({});
+  }>(() => {
+    const statusMap: { [key: string]: { status: 'pending' | 'approved' | null; person?: string } } = {};
+    mockChildren.forEach(child => {
+      statusMap[child.id] = {
+        status: child.pickupStatus || null,
+        person: child.pickupPerson
+      };
+    });
+    return statusMap;
+  });
+  
+  const t = useTranslation(language);
 
-  // Load data from Supabase with fallback to mock data
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const user = await authService.getCurrentUser();
-        
-        // Try to get data from Supabase
-        try {
-          if (user) {
-            // Get children for current parent
-            const children = await childrenService.getChildren(user.id);
-            const mappedChildren: Child[] = children.map(c => ({
-              id: c.id,
-              name: c.name,
-              status: c.status === 'present' ? 'present' : 'home',
-              group: c.group || '',
-              checkInTime: c.check_in_time || undefined,
-              checkOutTime: c.check_out_time || undefined,
-              notes: c.notes || undefined,
-              allergies: c.allergies || undefined,
-              pickupStatus: null,
-            }));
-            
-            if (mappedChildren.length > 0) {
-              setMyChildren(mappedChildren);
-              if (!selectedChildId) {
-                setSelectedChildId(mappedChildren[0].id);
-              }
-            } else {
-              // Fallback to mock data if no children found
-              throw new Error('No children found');
-            }
-
-            // Get daily info
-            const info = await dailyInfoService.getDailyInfo();
-            const mappedInfo: DailyInfo[] = info.map(i => ({
-              id: i.id,
-              type: i.type,
-              title: i.title,
-              description: i.description,
-              date: i.date,
-              targetGroup: i.target_group || undefined,
-            }));
-            setDailyInfo(mappedInfo);
-          } else {
-            throw new Error('No user');
-          }
-        } catch (supabaseError) {
-          // Fallback to mock data
-          console.log('Using mock data (Supabase not available)');
-          const demoChildren = mockChildren.slice(0, 3); // Show first 3 children for demo
-          setMyChildren(demoChildren);
-          if (!selectedChildId && demoChildren.length > 0) {
-            setSelectedChildId(demoChildren[0].id);
-          }
-          setDailyInfo(mockDailyInfo);
-        }
-
-        setLoading(false);
-      } catch (error) {
-        console.error('Failed to load data:', error);
-        // Final fallback to mock data
-        const demoChildren = mockChildren.slice(0, 3);
-        setMyChildren(demoChildren);
-        if (!selectedChildId && demoChildren.length > 0) {
-          setSelectedChildId(demoChildren[0].id);
-        }
-        setDailyInfo(mockDailyInfo);
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, []);
-
-  // Load child-specific data when selection changes
-  useEffect(() => {
-    if (!selectedChildId) return;
-
-    const loadChildData = async () => {
-      try {
-        // Try to get data from Supabase
-        try {
-          // Get incidents for selected child
-          const incidents = await incidentsService.getIncidents(selectedChildId);
-          const mappedIncidents: Incident[] = (incidents as any[]).map((i: any) => ({
-            id: i.id,
-            childId: selectedChildId,
-            type: i.type,
-            title: i.title || '',
-            description: i.description,
-            severity: i.severity,
-            actionTaken: i.action_taken || '',
-            reportedBy: i.reported_by || '',
-            reportedAt: i.reported_at || i.created_at,
-            timestamp: i.created_at,
-            notifiedParent: i.notified_parents,
-            notifiedParents: i.notified_parents,
-          }));
-          setChildIncidents(mappedIncidents);
-
-          // Get attendance logs
-          const logs = await attendanceService.getAttendanceLogs(selectedChildId, 10);
-          const mappedLogs: PickupLog[] = (logs as any[]).map((log: any) => ({
-            id: log.id,
-            childId: selectedChildId,
-            childName: myChildren.find(c => c.id === selectedChildId)?.name || '',
-            action: log.action === 'check_in' ? 'Levert' : 'Hentet',
-            timestamp: log.created_at,
-            verifiedBy: log.verified_by || '',
-            notes: log.notes || undefined,
-            pickedUpBy: log.action === 'check_out' ? (log.verified_by || '') : undefined,
-            pickedUpAt: log.action === 'check_out' ? log.created_at : undefined,
-            checkedOutTime: log.action === 'check_out' ? log.created_at : undefined,
-          }));
-          setPickupLogs(mappedLogs);
-
-          // Get approved persons for selected child
-          const persons = await approvedPersonsService.getApprovedPersons(selectedChildId);
-          setApprovedPersons(persons);
-        } catch (supabaseError) {
-          // Fallback to mock data
-          console.log('Using mock data for child-specific data');
-          const childIncidents = mockIncidents.filter(i => i.childId === selectedChildId);
-          setChildIncidents(childIncidents);
-          
-          const childLogs = mockPickupLogs.filter(l => l.childId === selectedChildId);
-          setPickupLogs(childLogs);
-          
-          const childPersons = mockApprovedPersons.filter(p => p.childId === selectedChildId);
-          setApprovedPersons(childPersons);
-        }
-      } catch (error) {
-        console.error('Failed to load child data:', error);
-        // Final fallback to mock data
-        const childIncidents = mockIncidents.filter(i => i.childId === selectedChildId);
-        setChildIncidents(childIncidents);
-        
-        const childLogs = mockPickupLogs.filter(l => l.childId === selectedChildId);
-        setPickupLogs(childLogs);
-        
-        const childPersons = mockApprovedPersons.filter(p => p.childId === selectedChildId);
-        setApprovedPersons(childPersons);
-      }
-    };
-
-    loadChildData();
-  }, [selectedChildId, myChildren]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Laster inn...</p>
-        </div>
-      </div>
-    );
-  }
+  // For demo: parent only sees their own children
+  const myChildren = mockChildren.filter(child => 
+    child.id === 'child-1' || child.id === 'child-5' || child.id === 'child-7'
+  );
 
   const selectedChild = myChildren.find(child => child.id === selectedChildId);
+  
+  // Filter data for selected child
+  const childIncidents = selectedChild ? mockIncidents.filter(i => i.childId === selectedChild.id) : [];
+  const childPickupLogs = selectedChild ? mockPickupLogs.filter(l => l.childId === selectedChild.id) : [];
   const childGroup = selectedChild?.group;
 
   const handleSendPickupRequest = (person: string) => {
@@ -213,6 +63,10 @@ export function ParentView({ darkMode: _darkMode = false, language: _language = 
       setShowPickupForm(false);
       setShowPickupRequest(true);
     }
+  };
+
+  const getChildPickupInfo = (childId: string) => {
+    return childPickupStatus[childId] || { status: null };
   };
 
   return (
@@ -323,7 +177,7 @@ export function ParentView({ darkMode: _darkMode = false, language: _language = 
                   <Calendar className="w-5 h-5 text-purple-600" />
                   <h3 className="text-gray-900">I dag i barnehagen</h3>
                 </div>
-                <DailyInfoView info={dailyInfo} targetGroup={childGroup} />
+                <DailyInfoView info={mockDailyInfo} targetGroup={childGroup} />
               </section>
 
               {/* Attendance Today */}
@@ -372,20 +226,20 @@ export function ParentView({ darkMode: _darkMode = false, language: _language = 
                 <h3 className="mb-4 text-gray-900">Hvem henter?</h3>
                 <div className="bg-white rounded-2xl border border-gray-200 p-6">
                   <div className="grid grid-cols-2 gap-3 mb-6">
-                    {approvedPersons
-                      .filter((p: any) => (p.child_id === selectedChild.id || p.childId === selectedChild.id) && p.status === 'approved')
+                    {mockApprovedPersons
+                      .filter(p => p.childId === selectedChild.id && p.status === 'approved')
                       .slice(0, 4)
-                      .map((person: any) => (
+                      .map(person => (
                         <div 
                           key={person.id} 
                           className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-purple-50 hover:border-purple-200 border border-gray-100 transition-colors cursor-pointer"
                         >
                           <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0 text-white shadow-sm">
-                            {(person.full_name || person.name).charAt(0)}
+                            {person.name.charAt(0)}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm text-gray-900 truncate font-medium">{person.full_name || person.name}</p>
-                            <p className="text-xs text-gray-500">{person.relationship || person.relation}</p>
+                            <p className="text-sm text-gray-900 truncate font-medium">{person.name}</p>
+                            <p className="text-xs text-gray-500">{person.relation}</p>
                           </div>
                         </div>
                       ))}
@@ -501,7 +355,7 @@ export function ParentView({ darkMode: _darkMode = false, language: _language = 
 
               {/* Approved Persons */}
               <section className="mb-8">
-                <ApprovedPersons childId={selectedChild.id} approvedPersons={approvedPersons} />
+                <ApprovedPersons childId={selectedChild.id} />
               </section>
 
               {/* Pickup History */}
@@ -510,7 +364,7 @@ export function ParentView({ darkMode: _darkMode = false, language: _language = 
                   <History className="w-5 h-5 text-gray-600" />
                   <h3 className="text-gray-900">Hentingshistorikk</h3>
                 </div>
-                <PickupLogView logs={pickupLogs} />
+                <PickupLogView logs={childPickupLogs} />
               </section>
             </>
           )}
@@ -574,21 +428,21 @@ export function ParentView({ darkMode: _darkMode = false, language: _language = 
             </div>
             
             <div className="space-y-3 mb-6">
-              {approvedPersons
-                .filter((p: any) => (p.child_id === selectedChild.id || p.childId === selectedChild.id) && p.status === 'approved')
-                .map((person: any) => (
+              {mockApprovedPersons
+                .filter(p => p.childId === selectedChild.id && p.status === 'approved')
+                .map(person => (
                   <button
                     key={person.id}
-                    onClick={() => handleSendPickupRequest(person.full_name || person.name)}
+                    onClick={() => handleSendPickupRequest(person.name)}
                     className="w-full p-4 bg-gray-50 hover:bg-purple-50 hover:border-purple-300 border-2 border-gray-200 rounded-xl transition-all text-left group"
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-14 h-14 bg-gradient-to-br from-purple-400 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0 text-white shadow-sm text-xl">
-                        {(person.full_name || person.name).charAt(0)}
+                        {person.name.charAt(0)}
                       </div>
                       <div className="flex-1">
-                        <p className="text-gray-900 font-medium group-hover:text-purple-600 transition-colors">{person.full_name || person.name}</p>
-                        <p className="text-sm text-gray-500">{person.relationship || person.relation}</p>
+                        <p className="text-gray-900 font-medium group-hover:text-purple-600 transition-colors">{person.name}</p>
+                        <p className="text-sm text-gray-500">{person.relation}</p>
                       </div>
                       <svg className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

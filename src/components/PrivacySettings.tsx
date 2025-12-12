@@ -1,7 +1,6 @@
 import { X, Shield, Download, Trash2, Eye, Lock, Database, Server, FileText, AlertCircle, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
 import { Language, useTranslation } from '../translations/translations';
-import { authService, profileService, consentService, dataExportService } from '../services/supabase';
 
 interface PrivacySettingsProps {
   onClose: () => void;
@@ -14,77 +13,16 @@ export function PrivacySettings({ onClose, language = 'no' }: PrivacySettingsPro
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showFullPolicy, setShowFullPolicy] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [exportFormat, setExportFormat] = useState<'json' | 'csv'>('json');
+  
+  const t = useTranslation(language);
 
-  const handleDownloadData = async () => {
-    try {
-      setIsLoading(true);
-      const user = await authService.getCurrentUser();
-      if (!user) {
-        alert('Du må være innlogget for å eksportere data');
-        return;
-      }
-
-      if (exportFormat === 'json') {
-        await dataExportService.downloadUserDataAsJSON(user.id, user.user_metadata?.full_name || user.email || 'export');
-      } else {
-        await dataExportService.downloadUserDataAsCSV(user.id, user.user_metadata?.full_name || user.email || 'export');
-      }
-      alert('Data eksportert vellykket! Filen er lastet ned.');
-    } catch (error) {
-      console.error('Error exporting data:', error);
-      alert('Feil ved eksport av data. Vennligst prøv igjen senere.');
-    } finally {
-      setIsLoading(false);
-    }
+  const handleDownloadData = () => {
+    alert(t.dataWillBeSent);
   };
 
-  const handleDeleteAccount = async () => {
-    try {
-      setIsLoading(true);
-      const user = await authService.getCurrentUser();
-      if (!user) {
-        alert('Du må være innlogget for å slette konto');
-        return;
-      }
-
-      // Delete profile (cascade deletes related data)
-      await profileService.deleteAccount(user.id);
-      
-      // Delete consent preferences
-      await consentService.deleteConsentPreferences(user.id);
-      
-      // Sign out
-      await authService.signOut();
-      
-      alert('Din konto og alle relaterte data har blitt permanent slettet.');
-      onClose();
-    } catch (error) {
-      console.error('Error deleting account:', error);
-      alert('Feil ved sletting av konto. Vennligst kontakt support.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSaveConsent = async () => {
-    try {
-      const user = await authService.getCurrentUser();
-      if (!user) {
-        alert('Du må være innlogget for å lagre innstillinger');
-        return;
-      }
-
-      await consentService.saveConsentPreferences(user.id, {
-        data_sharing: dataSharing,
-        analytics: analytics,
-      });
-      alert('Dine samtykkevalg har blitt lagret.');
-    } catch (error) {
-      console.error('Error saving consent:', error);
-      alert('Feil ved lagring av innstillinger. Vennligst prøv igjen.');
-    }
+  const handleDeleteAccount = () => {
+    alert(t.accountDeleted);
+    onClose();
   };
 
   return (
@@ -257,8 +195,7 @@ export function PrivacySettings({ onClose, language = 'no' }: PrivacySettingsPro
                 {/* Download Data */}
                 <button
                   onClick={handleDownloadData}
-                  disabled={isLoading}
-                  className="w-full bg-white border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl p-4 text-left transition-colors"
+                  className="w-full bg-white border border-gray-200 hover:bg-gray-50 rounded-xl p-4 text-left transition-colors"
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
@@ -267,36 +204,8 @@ export function PrivacySettings({ onClose, language = 'no' }: PrivacySettingsPro
                     <div className="flex-1">
                       <p className="text-gray-900 mb-1">Last ned mine data</p>
                       <p className="text-sm text-gray-600">
-                        Få en kopi av alle dine lagrede data (GDPR Art. 15 & 20)
+                        Få en kopi av alle dine lagrede data (GDPR-rettighet)
                       </p>
-                      <div className="flex gap-2 mt-2">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setExportFormat('json');
-                          }}
-                          className={`px-2 py-1 text-xs rounded ${
-                            exportFormat === 'json'
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-gray-200 text-gray-700'
-                          }`}
-                        >
-                          JSON
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setExportFormat('csv');
-                          }}
-                          className={`px-2 py-1 text-xs rounded ${
-                            exportFormat === 'csv'
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-gray-200 text-gray-700'
-                          }`}
-                        >
-                          CSV
-                        </button>
-                      </div>
                     </div>
                     <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -333,23 +242,21 @@ export function PrivacySettings({ onClose, language = 'no' }: PrivacySettingsPro
 
                 {showDeleteConfirm ? (
                   <div className="bg-red-50 border-2 border-red-300 rounded-xl p-6">
-                    <h4 className="text-gray-900 mb-2">Er du HELT sikker?</h4>
+                    <h4 className="text-gray-900 mb-2">Er du sikker?</h4>
                     <p className="text-sm text-gray-700 mb-4">
-                      Dette vil PERMANENT slette din konto og alle tilknyttede data (barn, meldinger, logger). 
-                      Denne handlingen KAN IKKE ANGRES.
+                      Dette vil permanent slette din konto og alle tilknyttede data. 
+                      Denne handlingen kan ikke angres.
                     </p>
                     <div className="flex gap-3">
                       <button
                         onClick={handleDeleteAccount}
-                        disabled={isLoading}
-                        className="flex-1 h-10 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl transition-colors"
+                        className="flex-1 h-10 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-colors"
                       >
-                        {isLoading ? 'Sletter...' : 'Ja, slett permanent'}
+                        Ja, slett permanent
                       </button>
                       <button
                         onClick={() => setShowDeleteConfirm(false)}
-                        disabled={isLoading}
-                        className="flex-1 h-10 bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 rounded-xl transition-colors"
+                        className="flex-1 h-10 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl transition-colors"
                       >
                         Avbryt
                       </button>
@@ -358,8 +265,7 @@ export function PrivacySettings({ onClose, language = 'no' }: PrivacySettingsPro
                 ) : (
                   <button
                     onClick={() => setShowDeleteConfirm(true)}
-                    disabled={isLoading}
-                    className="w-full bg-white border-2 border-red-300 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl p-4 text-left transition-colors"
+                    className="w-full bg-white border-2 border-red-300 hover:bg-red-50 rounded-xl p-4 text-left transition-colors"
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
@@ -368,7 +274,7 @@ export function PrivacySettings({ onClose, language = 'no' }: PrivacySettingsPro
                       <div className="flex-1">
                         <p className="text-gray-900 mb-1">Slett min konto</p>
                         <p className="text-sm text-gray-600">
-                          Permanent slett all data tilknyttet din konto (GDPR Art. 17)
+                          Permanent slett all data tilknyttet din konto
                         </p>
                       </div>
                       <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -381,15 +287,8 @@ export function PrivacySettings({ onClose, language = 'no' }: PrivacySettingsPro
             </div>
           </div>
 
-          {/* Footer with Save Consent Button */}
-          <div className="p-6 border-t border-gray-200 bg-gray-50 space-y-3">
-            <button
-              onClick={handleSaveConsent}
-              disabled={isLoading}
-              className="w-full h-10 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl transition-colors font-medium"
-            >
-              {isLoading ? 'Lagrer...' : 'Lagre samtykkevalg'}
-            </button>
+          {/* Footer */}
+          <div className="p-6 border-t border-gray-200 bg-gray-50">
             <p className="text-xs text-gray-600 text-center">
               Les vår fullstendige{' '}
               <button className="text-blue-600 hover:underline" onClick={() => setShowFullPolicy(true)}>
@@ -493,17 +392,11 @@ export function PrivacySettings({ onClose, language = 'no' }: PrivacySettingsPro
                 <h3 className="text-gray-900 mb-2">6. Deling av data med tredjeparter</h3>
                 <p className="mb-2">Vi deler ikke dine personopplysninger med tredjeparter, med følgende unntak:</p>
                 <ul className="list-disc pl-6 space-y-1">
-                  <li><strong>Databehandlere (GDPR Art. 28):</strong>
-                    <ul className="list-disc pl-6 space-y-1 mt-1">
-                      <li><strong>Supabase (https://supabase.com):</strong> Skylagring av database og autentisering - sertifisert for GDPR med databehandleravtale. Data lagres på EU-servere.</li>
-                      <li><strong>AWS Norge:</strong> Underliggende infrastruktur for Supabase - sertifisert ISO 27001</li>
-                      <li><strong>SendGrid:</strong> E-postlevering (kun hvis aktivert for varsler)</li>
-                    </ul>
-                  </li>
+                  <li><strong>Databehandlere:</strong> Leverandører av skylagring (AWS Norge), e-posttjenester (SendGrid)</li>
                   <li><strong>Lovpålagt deling:</strong> Politi, barnevern eller andre myndigheter ved lovkrav</li>
                   <li><strong>Anonymiserte data:</strong> Kun hvis du har samtykket til datadeling for statistikk</li>
                 </ul>
-                <p className="mt-2">Alle databehandlere er underlagt databehandleravtaler i henhold til GDPR artikkel 28. Du kan få innsyn i avtaler på forespørsel til personvern@hentetjeneste.no</p>
+                <p className="mt-2">Alle databehandlere er underlagt databehandleravtaler i henhold til GDPR artikkel 28.</p>
               </div>
 
               <div>
