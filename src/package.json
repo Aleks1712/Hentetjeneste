@@ -27,7 +27,7 @@
     "expo-linear-gradient": "~13.0.2",
     "expo-localization": "~15.0.3",
     "expo-secure-store": "~13.0.1",
-    "react-native-svg": "15.2.0"
+    "react-native-svg": "15.15.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
